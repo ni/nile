@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# This script attempts quick clones of the authentication-required repos
+# in order to ensure that from within the pyrex container we are able to
+# access them.
+
+SCRIPT_ROOT=$(realpath $(dirname $BASH_SOURCE))
+REPO_ROOT=$(realpath "$SCRIPT_ROOT/..")
+
+function check_credentials () {
+	# Test the remote to make sure we can access this URI with the
+	# authentication credentials (via netrc and/or insteadOf redirection)
+	# We set GIT_ASKPASS to /bin/true so that it fails without a password
+	# prompt, and ensure we're not using a credential helper (because we
+	# can't guarantee that it won't throw up a window, because
+	# git-credential-manager will do that.)
+
+        GIT_ASKPASS='true' SSH_ASKPASS='true' \
+		GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=no" \
+		git -c 'credential.helper=' ls-remote "$1" >/dev/null 2>/dev/null
+	return $?
+}
+
+if [ ! -e ${REPO_ROOT}/build/.checked-repo-auth ]; then
+	AUTH_FAILED=0
+
+#	if check_credentials "https://github.com/ni/linux-internal.git"; then
+#		echo "### Able to authenticate to internal NI GitHub repos"
+#	else
+#		echo "### Unable to authenticate to NI GitHub repos."
+#		AUTH_FAILED=1
+#	fi
+
+	if check_credentials "https://dev.azure.com/ni/DevCentral/_git/ni-central"; then
+		echo "### Able to authenticate to internal NI Azure DevOps repo (ni-central)."
+	else
+		echo "### Unable to authenticate to NI Azure DevOps repo (ni-central)."
+		AUTH_FAILED=1
+	fi
+
+	if [ "$AUTH_FAILED" -eq 1 ]; then
+		echo "###"
+		echo "### Please read the \"Authentication to internal repos\" topic"
+		echo "### in README.md for how to resolve authentication failures."
+		echo "###"
+		exit 1
+	else
+		touch ${REPO_ROOT}/build/.checked-repo-auth
+	fi
+fi

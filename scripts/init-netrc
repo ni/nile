@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# This script sets up a .netrc within the container from tokens specified in
+# environment variables, so that they can be passed in in the build pipelines.
+
+NETRC=$1
+
+rm -f $NETRC
+
+# Initialize the netrc from the host user's, if present.
+if [ -f $HOME/.netrc ]; then
+	mkdir -p $(dirname $NETRC)
+	cp $HOME/.netrc $NETRC
+else
+	touch $NETRC
+fi
+
+# Add tokens from environment, if present.
+# Neither GitHub nor AzDO care about the login name, other than it must be
+# something non-empty.
+if [ -n "${AZDO_TOKEN}" ]; then
+	echo "machine dev.azure.com login api password ${AZDO_TOKEN}" >> $NETRC
+fi
+
+#if [ -n "${GITHUB_TOKEN}" ]; then
+#	echo "machine github.com login api password ${GITHUB_TOKEN}" >> $NETRC
+#fi
