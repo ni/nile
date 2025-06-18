@@ -1,0 +1,39 @@
+[submodule "sources/bitbake"]
+	path = sources/bitbake
+	url = https://github.com/openembedded/bitbake.git
+	branch = 2.8
+[submodule "sources/openembedded-core"]
+	path = sources/openembedded-core
+	url = https://github.com/openembedded/openembedded-core.git
+	branch = scarthgap
+[submodule "sources/meta-openembedded"]
+	path = sources/meta-openembedded
+	url = https://github.com/openembedded/meta-openembedded
+	branch = scarthgap
+[submodule "sources/pyrex"]
+	path = sources/pyrex
+	url = https://github.com/garmin/pyrex.git
+[submodule "sources/meta-arm"]
+	path = sources/meta-arm
+	url = https://git.yoctoproject.org/meta-arm
+	branch = scarthgap
+[submodule "sources/meta-xilinx"]
+	path = sources/meta-xilinx
+	url = https://github.com/Xilinx/meta-xilinx.git
+	branch = scarthgap
+[submodule "sources/meta-xilinx-tools"]
+	path = sources/meta-xilinx-tools
+	url = https://github.com/Xilinx/meta-xilinx-tools.git
+	branch = scarthgap
+[submodule "sources/meta-amd-adaptive-socs"]
+	path = sources/meta-amd-adaptive-socs
+	url = https://github.com/Xilinx/meta-amd-adaptive-socs.git
+	branch = scarthgap
+[submodule "sources/meta-openamp"]
+	path = sources/meta-openamp
+	url = https://github.com/Xilinx/meta-openamp.git
+	branch = rel-v2025.1
+[submodule "sources/meta-virtualization"]
+	path = sources/meta-virtualization
+	url = https://git.yoctoproject.org/meta-virtualization
+	branch = scarthgap
