@@ -1,0 +1,20 @@
+
+### Shell environment set up for Kula IBA builds. ###
+
+You can now run 'bitbake <target>'
+
+Common targets are:
+    core-image-minimal
+    core-image-full-cmdline
+
+You can build a sdk with:
+    bitbake -c populate_sdk core-image-minimal
+
+You can also run generated qemu images with a commands like:
+    runqemu core-image-minimal
+    runqemu core-image-full-cmdline
+
+Other commonly useful commands are:
+ - 'devtool' and 'recipetool' handle common recipe tasks
+ - 'bitbake-layers' handles common layer tasks
+ - 'oe-pkgdata-util' handles common target package tasks

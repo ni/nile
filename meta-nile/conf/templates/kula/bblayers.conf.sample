@@ -1,0 +1,25 @@
+# LAYER_CONF_VERSION is increased each time build/conf/bblayers.conf
+# changes incompatibly
+LCONF_VERSION = "7"
+
+BBPATH = "${TOPDIR}:${HOME}/.oe"
+BBFILES ?= ""
+
+BBLAYERS ?= " \
+  ##OEROOT##/meta \
+  ##OEROOT##/../meta-xilinx/meta-xilinx-bsp \
+  ##OEROOT##/../meta-xilinx/meta-microblaze \
+  ##OEROOT##/../meta-xilinx/meta-xilinx-core \
+  ##OEROOT##/../meta-amd-adaptive-socs/meta-amd-adaptive-socs-core \
+  ##OEROOT##/../meta-xilinx/meta-xilinx-standalone \
+  ##OEROOT##/../meta-xilinx/meta-xilinx-standalone-sdt \
+  ##OEROOT##/../meta-arm/meta-arm \
+  ##OEROOT##/../meta-arm/meta-arm-toolchain \
+  ##OEROOT##/../meta-openamp \
+  ##OEROOT##/../meta-openembedded/meta-oe \
+  ##OEROOT##/../meta-openembedded/meta-python \
+  ##OEROOT##/../meta-openembedded/meta-filesystems \
+  ##OEROOT##/../meta-openembedded/meta-networking \
+  ##OEROOT##/../meta-virtualization \
+  ##OEROOT##/../../meta-nile \
+  "
