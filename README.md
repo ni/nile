@@ -34,7 +34,7 @@ Getting Started
 
 1. Clone the git repository:
 
-    $ git clone https://github.com/gratian/nile.git
+    $ git clone https://github.com/ni/nile.git
 
 2. Check out the appropriate branch (default scarthgap based branch is OK for now):
 
