@@ -31,7 +31,7 @@ if [ ! -e ${REPO_ROOT}/build/.checked-repo-auth ]; then
 #		AUTH_FAILED=1
 #	fi
 
-	if check_credentials "https://dev.azure.com/ni/DevCentral/_git/ni-central"; then
+	if check_credentials "https://dev.azure.com/ni/Users/_git/kula-vivado"; then
 		echo "### Able to authenticate to internal NI Azure DevOps repo (ni-central)."
 	else
 		echo "### Unable to authenticate to NI Azure DevOps repo (ni-central)."

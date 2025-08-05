@@ -1,3 +1,1 @@
-PYREXCONFFILE=./pyrex.ini
-BITBAKEDIR=$(pwd)/sources/bitbake
 OEROOT=$(pwd)/sources/openembedded-core

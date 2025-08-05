@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# This script is run by pyrex within the container as part of the init
+# process, and exists to do some checks.
+
+SCRIPT_ROOT=$(realpath $(dirname $BASH_SOURCE))
+REPO_ROOT=$(realpath $SCRIPT_ROOT/..)
+
+${SCRIPT_ROOT}/check-ni-repos
+
+# Chain to the oe initilization script.
+unset SCRIPT_ROOT
+. "${REPO_ROOT}/sources/openembedded-core/oe-init-build-env"

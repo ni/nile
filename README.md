@@ -44,21 +44,25 @@ Getting Started
 
     $ git submodule update --init --recursive
 
-4. Initialize the build system:
+4. Build docker image for pyrex
 
-    $ source ./setup-nile <template_name>
+    $ bash ./docker/create-build-nile.sh
 
-	example:
-    $ source ./setup-nile kula
+	Verify the image was created:
+    $ docker images build-nile
 
-5. Build an image:
+5. Initialize the build system:
+
+    $ source ./nile-oe-init-build-env
+
+6. Build an image:
 
     $ bitbake core-image-full-cmdline
 
-6. Test it in qemu with:
+7. Test it in qemu with:
 
     $ runqemu core-image-full-cmdline
 
-7. Build an sdk:
+8. Build an sdk:
 
     $ bitbake -c populate_sdk core-image-full-cmdline
