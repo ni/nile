@@ -8,8 +8,8 @@ NETRC=$1
 rm -f $NETRC
 
 # Initialize the netrc from the host user's, if present.
+mkdir -p $(dirname $NETRC)
 if [ -f $HOME/.netrc ]; then
-	mkdir -p $(dirname $NETRC)
 	cp $HOME/.netrc $NETRC
 else
 	touch $NETRC
