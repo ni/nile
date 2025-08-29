@@ -57,12 +57,12 @@ Getting Started
 
 6. Build an image:
 
-    $ bitbake core-image-full-cmdline
+    $ bitbake nile-image-dev
 
 7. Test it in qemu with:
 
-    $ runqemu core-image-full-cmdline
+    $ runqemu nile-image-dev
 
 8. Build an sdk:
 
-    $ bitbake -c populate_sdk core-image-full-cmdline
+    $ bitbake -c populate_sdk nile-image-dev
