@@ -1,4 +1,4 @@
-SUMMARY = "NI Linux Embedded Kula development image"
+SUMMARY = "NI Linux Embedded development image"
 
 IMAGE_FEATURES += "splash ssh-server-openssh package-management debug-tweaks tools-sdk tools-debug"
 
