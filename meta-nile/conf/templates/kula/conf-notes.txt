@@ -4,15 +4,13 @@
 You can now run 'bitbake <target>'
 
 Common targets are:
-    core-image-minimal
-    core-image-full-cmdline
+    nile-image-dev
 
 You can build a sdk with:
-    bitbake -c populate_sdk core-image-minimal
+    bitbake -c populate_sdk nile-image-dev
 
 You can also run generated qemu images with a commands like:
-    runqemu core-image-minimal
-    runqemu core-image-full-cmdline
+    runqemu nile-image-dev
 
 Other commonly useful commands are:
  - 'devtool' and 'recipetool' handle common recipe tasks
