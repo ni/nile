@@ -37,3 +37,7 @@
 	path = sources/meta-virtualization
 	url = https://git.yoctoproject.org/meta-virtualization
 	branch = scarthgap
+[submodule "sources/meta-yocto"]
+	path = sources/meta-yocto
+	url = https://git.yoctoproject.org/meta-yocto
+	branch = scarthgap
