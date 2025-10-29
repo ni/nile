@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# This script runs qemu and starts a VM using files included in the
+# rtos_nilinuxembedded exports. It will also build the qemu-helper-native recipe
+# if it has not already been built.
+# The script expects the path to the qemu directory in the rtos_nilinuxembedded
+# export as an argument.
+
+SCRIPT_ROOT=$(realpath $(dirname ${BASH_SOURCE:-${0}}))
+REPO_ROOT=$(dirname "$SCRIPT_ROOT")
+QEMU_FILES_PATH=$1
+
+git submodule update --init --recursive
+
+DOCKER_IMAGES="$(docker images build-nile)"
+echo $DOCKER_IMAGES
+if [[ !  $DOCKER_IMAGES =~ "build-nile" ]]; then
+	bash $REPO_ROOT/docker/create-build-nile.sh
+fi
+
+bash $REPO_ROOT/nile-oe-init-build-env --template kula
+
+if [ ! -d $REPO_ROOT/build/tmp/work/x86_64-linux/qemu-helper-native ]; then
+	bitbake qemu-helper-native
+fi
+
+runqemu $QEMU_FILES_PATH/*.qemuboot.conf
