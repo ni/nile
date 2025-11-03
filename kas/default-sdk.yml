@@ -1,0 +1,6 @@
+header:
+    version: 19
+    includes:
+        - kas/default.yml
+
+task: populate_sdk
