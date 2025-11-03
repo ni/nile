@@ -1,0 +1,16 @@
+header:
+    version: 19
+    includes:
+        - kas/base.yml
+
+machine: genericarm64
+
+target:
+    - nile-image-dev
+
+repos:
+    meta-yocto:
+        url: "https://git.yoctoproject.org/meta-yocto.git"
+        path: "layers/meta-yocto"
+        layers:
+            meta-yocto-bsp:
