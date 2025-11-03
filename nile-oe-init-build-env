@@ -6,14 +6,19 @@ SCRIPT_ROOT=$(realpath $(dirname ${BASH_SOURCE:-${0}}))
 usage() {
 	cat >&2 <<EOF
 $(basename ${BASH_SOURCE}) [-h] \
+	[-s SSTATE_MIRROR_PREFIX SSTATE_MIRROR_PATH] \
 	[[--] OE_INIT_ARGS...]
 
 Arguments:
 -h, --help	Print this usage text and exit.
 -t, --template	Template to use for this build environment (defaults to a generic ARM64 machine configuration).
+-s, --sstate-mirror SSTATE_MIRROR_PREFIX SSTATE_MIRROR_PATH
+	Add the SSTATE_MIRROR_PREFIX/_PATH pair to the bitbake environment's
+	SSTATE_MIRRORS variable.
 
 EOF
 }
+sstate_mirrors=()
 positionals=()
 template="default"
 
@@ -31,6 +36,14 @@ while [ $# -ge 1 ]; do case "$1" in
 			template=$2
 			shift 2
 		fi
+		;;
+	-s|--sstate-mirror)
+		if [ -z "${2:-}" -o -z "${3:-}" ]; then
+			echo "ERROR: --sstate-mirror argument expected two strings." >&2
+			return 2
+		fi
+		sstate_mirrors+=("$2 $3")
+		shift 3
 		;;
 	--)
 		shift
@@ -97,6 +110,8 @@ echo "BB_NUMBER_THREADS=${BB_NUMBER_THREADS}"
 export TEMPLATECONF="${SCRIPT_ROOT}/meta-nile/conf/templates/${template}"
 echo "TEMPLATECONF=${TEMPLATECONF}"
 
+export SSTATE_MIRRORS="${SSTATE_MIRRORS:-} ${sstate_mirrors[@]/%/ \\n}"
+
 # Define here all Nile-specific variables which need to be passed to bitbake
 # (should include everything we've set above which is non-standard)
 # Any PAT tokens should be captured here as well.
@@ -107,6 +122,7 @@ export BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} \
 	LOCAL_LAYERSDIR \
 	BB_SIGNATURE_HANDLER \
 	BB_HASHSERVE \
+	SSTATE_DIR \
 	SSTATE_MIRRORS \
 "
 
