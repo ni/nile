@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Wrapper for the upstream kas-container script, which we leave unmodified
+# (to make updates easier) as scripts/kas-container.
+#
+# This script overrides some of the default values for the kas-container
+# script to make manual builds easier.
+
+script_root_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+# The default 5.0 container, "debian-trixie", creates build problems
+# for qemu-native and binutils-cross-microblaze recipes in meta-xilinx's
+# repo.
+export KAS_CONTAINER_IMAGE_DISTRO="debian-bookworm"
+
+# Set the work directory to the repository root, unless otherwise overridden.
+export KAS_WORK_DIR="${KAS_WORK_DIR:-$script_root_dir}"
+export KAS_BUILD_DIR="${KAS_BUILD_DIR:-$KAS_WORK_DIR/build}"
+
+# If the user has AZDO_TOKEN/GITHUB_TOKEN set in their environment, use
+# those. kas does have 'CI_SERVER_HOST' and 'CI_JOB_TOKEN' variables, but
+# you only get to pick one, whereas we have on occasion dealt with needing
+# to authenticate against both GitHub and Azure DevOps.
+${script_root_dir}/scripts/init-netrc "${KAS_BUILD_DIR}/netrc"
+export NETRC_FILE="${KAS_BUILD_DIR}/netrc"
+
+# forward on to real kas-container script
+exec ${script_root_dir}/scripts/kas-container $*
