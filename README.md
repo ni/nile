@@ -66,3 +66,38 @@ Getting Started
 8. Build an sdk:
 
     $ bitbake -c populate_sdk nile-image-dev
+
+
+Getting Started (KAS)
+---------------------
+
+1. Clone the git repository:
+
+   ```
+   $ git clone https://github.com/ni/nile.git
+   ```
+
+2. Check out the appropriate branch (default scarthgap based branch is OK for now):
+
+   ```
+   $ cd nile
+   ```
+
+3. Build an image:
+
+   ```
+   $ ./kas-container build kas/kula.yml
+   ```
+
+4. Test it in qemu with:
+
+   ```
+   $ ./kas-container shell kas/kula.yml
+   $ runqemu nile-image-dev
+   ```
+
+5. Build an sdk:
+
+   ```
+   $ ./kas-container build kas/default-sdk.yml
+   ```
