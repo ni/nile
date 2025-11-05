@@ -15,6 +15,9 @@ else
 	touch $NETRC
 fi
 
+# Ensure that the generated netrc file can be accessed only by the owner.
+chmod 600 $NETRC
+
 # Add tokens from environment, if present.
 # Neither GitHub nor AzDO care about the login name, other than it must be
 # something non-empty.
