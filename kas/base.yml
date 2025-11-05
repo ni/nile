@@ -3,6 +3,9 @@ header:
 
 distro: nile
 
+env:
+    BUILDNAME: "99.0.0d0"
+
 defaults:
     repos:
         branch: "scarthgap"
