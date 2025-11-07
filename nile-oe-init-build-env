@@ -24,6 +24,11 @@ template="default"
 
 set -u
 while [ $# -ge 1 ]; do case "$1" in
+	-d|--download-dir)
+		shift
+		export DL_DIR=$(realpath "$1")
+		shift
+		;;
 	-h|--help)
 		usage
 		return 0
@@ -117,6 +122,7 @@ export SSTATE_MIRRORS="${SSTATE_MIRRORS:-} ${sstate_mirrors[@]/%/ \\n}"
 # Any PAT tokens should be captured here as well.
 export BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} \
 	BB_NUMBER_THREADS \
+	DL_DIR \
 	GIT_REPODIR \
 	GITHUB_TOKEN \
 	LOCAL_LAYERSDIR \
