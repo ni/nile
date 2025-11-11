@@ -8,10 +8,8 @@
 
 script_root_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-# The default 5.0 container, "debian-trixie", creates build problems
-# for qemu-native and binutils-cross-microblaze recipes in meta-xilinx's
-# repo.
-export KAS_CONTAINER_IMAGE_DISTRO="debian-bookworm"
+# Use our build container.
+export KAS_CONTAINER_IMAGE="build-nile:latest"
 
 # Set the work directory to the repository root, unless otherwise overridden.
 export KAS_WORK_DIR="${KAS_WORK_DIR:-$script_root_dir}"

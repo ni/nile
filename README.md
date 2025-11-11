@@ -83,20 +83,27 @@ Getting Started (KAS)
    $ cd nile
    ```
 
-3. Build an image:
+3. Build docker image for kas
+
+    $ bash ./docker/create-build-nile.sh --base kas
+
+	Verify the image was created:
+    $ docker images build-nile
+
+4. Build an image:
 
    ```
    $ ./kas-container build kas/kula.yml
    ```
 
-4. Test it in qemu with:
+5. Test it in qemu with:
 
    ```
    $ ./kas-container shell kas/kula.yml
    $ runqemu nile-image-dev
    ```
 
-5. Build an sdk:
+6. Build an sdk:
 
    ```
    $ ./kas-container build kas/default-sdk.yml
