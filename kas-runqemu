@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+#
+# Wrapper around the runqemu script that uses the kas project configuration to
+# figure out how to run qemu,
+#
+# Despite the name, this does _not_ run qemu inside of the kas build container.
+# runqemu is generally not going to work correctly inside of the kas build
+# container, because runqemu wants to set up networking and some other stuff
+# that isn't passed into the container environment by kas-container.
+#
+# runqemu does support being passed a qemuboot.conf file directly; this script
+# exists to find it (based on the target and machine from the kas project) in
+# such a way that we avoid calling bitbake (because bitbake does not exist in
+# the host environment).
+
+import os
+import sys
+import subprocess
+import json
+import configparser
+from pathlib import Path
+
+script_path = os.path.dirname(os.path.realpath(__file__))
+kas_container = os.path.join(script_path, "kas-container")
+
+def get_project_configuration(kas_config):
+    """Get project configuration dump from kas."""
+    cfg = json.loads(subprocess.check_output([
+        kas_container,
+        "dump",
+        "--format", "json",
+        kas_config]).decode("utf-8"))
+    return cfg
+
+def get_repo_path(cfg, kas_work_dir, repo_name):
+    """Get the checkout directory for a given repo."""
+
+    # check to see if the config file has a 'path' entry for the repo
+    repo_path = None
+    if "repos" in cfg:
+        repos = cfg["repos"]
+        if repo_name in repos:
+            repo = repos[repo_name]
+            if "path" in repo:
+                repo_path = repo["path"]
+                # if the path is relative, it is relative to the kas work dir
+                if not Path(repo_path).is_absolute():
+                    repo_path = os.path.join(kas_work_dir, repo_path)
+
+    # otherwise, the checkout directory defaults to kas_work_dir + repo.name
+    if not repo_path:
+        repo_path = os.path.join(kas_work_dir, repo_name)
+
+    return repo_path
+
+
+def get_image_target(targets):
+    """Given a list of targets, find the one (and only one) that corresponds to an image build."""
+
+    # target from yml can be a string or a list; normalize this to a list
+    if isinstance(targets, str):
+        targets = [targets]
+
+    image_targets = list(filter(lambda x: "-image-" in x, targets))
+
+    if len(image_targets) > 1:
+        raise Exception("Multiple candidate image targets in configuration: %s" % ", ".join(image_targets))
+    elif len(image_targets) == 0:
+        raise Exception("No image targets found in configuration.")
+    else:
+        return image_targets[0]
+
+
+def find_qemuboot_conf(build_dir, image_target, machine):
+    """Find the qemuboot.conf file for an image target."""
+
+    deploy_image_dir = os.path.join(build_dir, "tmp", "deploy", "images", machine)
+
+    # qemuboot is generated at ${IMGDEPLOYDIR}/${IMAGE_NAME}.qemuboot.conf
+    # and unless overridden, IMAGE_NAME = ${IMAGE_BASENAME}${IMAGE_MACHINE_SUFFIX}${IMAGE_NAME_SUFFIX}
+    # the only IMAGE_NAME_SUFFIX that runqemu's search logic knows about is ".rootfs"
+
+    possible_cfg_paths = [
+        os.path.join(deploy_image_dir, image_target + "-" + machine + ".rootfs.qemuboot.conf"),
+        os.path.join(deploy_image_dir, image_target + "-" + machine + "qemuboot.conf"),
+    ]
+
+    for p in possible_cfg_paths:
+        if os.path.exists(p):
+            return p
+
+    raise Exception("Could not find a qemuboot.conf in %s" % possible_cfg_paths)
+
+
+def rewrite_qemuboot_conf(orig_cfg, new_cfg):
+    """
+    Rewrite the qemuboot.conf to work around invalid staging paths.
+
+    the qemuboot.conf that is generated has "staging_dir_host" and "staging_dir_native",
+    that point to something like:
+
+    staging_dir_host = ../../../work/MACHINE-oe-linux/IMAGENAME/1.0/recipe-sysroot
+    staging_dir_native = ../../../work/MACHINE-oe-linux/IMAGENAME/1.0/recipe-sysroot-native
+
+    unfortunately by the time we get there, those paths are invalid, because they've
+    been removed by rm_work; qemuboot.bbclass even notes this. However, runqemu will look
+    at "staging_dir_native" and ignore "staging_bindir_native" (instead preferring to
+    bitbake -e, which is what we're trying to avoid.)
+
+    So we get to rewrite the configuration file to fix this. Joy!
+    """
+
+    cf = configparser.ConfigParser()
+    cf.read(orig_cfg)
+
+    staging_bindir_native = cf['config_bsp']['staging_bindir_native']
+    # strip off the /usr/bin at the end
+    path1, bin = os.path.split(staging_bindir_native)
+    path2, usr = os.path.split(path1)
+
+    cf['config_bsp']['staging_dir_native'] = path2
+
+    with open(new_cfg, 'w') as new_cfg_f:
+        cf.write(new_cfg_f)
+
+
+def main():
+    # pop the first argument for kas configuration; assume the rest is to be passed
+    # to runqemu
+    if len(sys.argv) < 2:
+        print("usage: %s <config> [runqemu args]" % sys.argv[0], file=sys.stderr)
+        sys.exit(1)
+    kas_config = sys.argv.pop(1)
+
+    kas_work_dir = os.environ.get("KAS_WORK_DIR", script_path)
+    kas_build_dir = os.environ.get("KAS_BUILD_DIR", os.path.join(kas_work_dir, "build"))
+
+    cfg = get_project_configuration(kas_config)
+
+    image_target = get_image_target(cfg["target"])
+    qemuboot_conf = find_qemuboot_conf(kas_build_dir, image_target, cfg["machine"])
+
+    # replacement configuration file has to be in the same directory
+    new_qemuboot_conf = os.path.join(os.path.dirname(qemuboot_conf), "tmp-" + image_target + "-" + cfg["machine"] + ".qemuboot.conf")
+
+    rewrite_qemuboot_conf(qemuboot_conf, new_qemuboot_conf)
+
+    # find the path to the 'runqemu' script
+    oecore_path = get_repo_path(cfg, kas_work_dir, "openembedded-core")
+    runqemu_path = os.path.join(oecore_path, "scripts", "runqemu")
+
+    # build argument list
+    runqemu_cmd = [
+        runqemu_path,
+        new_qemuboot_conf,
+        *sys.argv[1:]
+    ]
+    # there are a number of runqemu-* helper scripts that need to be in PATH
+    os.environ['PATH'] = os.environ['PATH'] + ":" + os.path.dirname(runqemu_path)
+
+    # call runqemu
+    os.execv(runqemu_cmd[0], runqemu_cmd)
+
+
+if __name__ == "__main__":
+    main()
