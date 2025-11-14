@@ -23,4 +23,4 @@ ${script_root_dir}/scripts/init-netrc "${KAS_BUILD_DIR}/netrc"
 export NETRC_FILE="${KAS_BUILD_DIR}/netrc"
 
 # forward on to real kas-container script
-exec ${script_root_dir}/scripts/kas-container $*
+exec ${script_root_dir}/scripts/kas-container "$@"
