@@ -13,6 +13,9 @@ export KAS_CONTAINER_IMAGE="build-nile:latest"
 
 # Set the work directory to the repository root, unless otherwise overridden.
 export KAS_WORK_DIR="${KAS_WORK_DIR:-$script_root_dir}"
+# Set the inner work dir to be the same path as it exists outside the container,
+# so that uninative binaries can be run outside of the container environment.
+export KAS_INNER_WORK_DIR="${KAS_WORK_DIR}"
 export KAS_BUILD_DIR="${KAS_BUILD_DIR:-$KAS_WORK_DIR/build}"
 
 # If the user has AZDO_TOKEN/GITHUB_TOKEN set in their environment, use
