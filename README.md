@@ -99,8 +99,7 @@ Getting Started (KAS)
 5. Test it in qemu with:
 
    ```
-   $ ./kas-container shell kas/kula.yml
-   $ runqemu nile-image-dev
+   $ ./kas-runqemu kas/kula.yml
    ```
 
 6. Build an sdk:
