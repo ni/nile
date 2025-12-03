@@ -44,6 +44,10 @@ repos:
         path: "layers/openembedded-core"
         layers:
             meta:
+        patches:
+            patch0:
+                repo: meta-nile
+                path: ../kas/patches/oe-core/0001-Revert-lib-oe-go-document-map_arch-and-raise-an-erro.patch
 
     meta-openembedded:
         url: "https://git.openembedded.org/meta-openembedded.git"
