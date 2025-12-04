@@ -1,0 +1,11 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/genericarm64.yml
+
+target:
+  - meta-toolchain
+
+artifacts:
+  "oecore-meta-toolchain-x86_64-armv8a-genericarm64-toolchain-nodistro.0.sh": "tmp/deploy/sdk/oecore-meta-toolchain-x86_64-armv8a-genericarm64-toolchain-nodistro.0.sh"
