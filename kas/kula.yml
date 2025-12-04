@@ -1,43 +1,5 @@
+# pipeline still refers to this file; redirect to new location under targets
 header:
-    version: 19
-    includes:
-        - kas/base.yml
-
-machine: kula
-
-local_conf_header:
-    xilinx-licenses: |
-        LICENSE_FLAGS_ACCEPTED += " xilinx"
-
-target:
-    - nile-image-dev
-
-repos:
-    meta-xilinx:
-        url: "https://github.com/Xilinx/meta-xilinx.git"
-        path: "layers/meta-xilinx"
-        layers:
-            meta-xilinx-bsp:
-            meta-microblaze:
-            meta-xilinx-core:
-            meta-xilinx-standalone:
-            meta-xilinx-standalone-sdt:
-
-    meta-xilinx-tools:
-        url: "https://github.com/Xilinx/meta-xilinx-tools.git"
-        path: "layers/meta-xilinx-tools"
-
-    meta-amd-adaptive-socs:
-        url: "https://github.com/Xilinx/meta-amd-adaptive-socs.git"
-        path: "layers/meta-amd-adaptive-socs"
-        layers:
-            meta-amd-adaptive-socs-core:
-
-    meta-openamp:
-        url: "https://github.com/Xilinx/meta-openamp.git"
-        path: "layers/meta-openamp"
-        branch: "rel-v2025.1"
-
-    meta-virtualization:
-        url: "https://git.yoctoproject.org/meta-virtualization.git"
-        path: "layers/meta-virtualization"
+  version: 19
+  includes:
+    - kas/targets/nile-image-dev_kula.yml
