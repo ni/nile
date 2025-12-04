@@ -1,0 +1,11 @@
+header:
+  version: 19
+
+machine: genericarm64
+
+repos:
+  meta-yocto:
+    url: "https://git.yoctoproject.org/meta-yocto.git"
+    path: "layers/meta-yocto"
+    layers:
+      meta-yocto-bsp:

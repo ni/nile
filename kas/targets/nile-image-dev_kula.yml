@@ -1,0 +1,24 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/kula.yml
+
+target:
+  - nile-image-dev
+
+artifacts:
+  "Image.bin": "tmp/deploy/images/kula/Image-kula.bin"
+  "boot.bin": "tmp/deploy/images/kula/boot.bin"
+  "boot.scr": "tmp/deploy/images/kula/boot.scr"
+  "nile-image-dev-kula.rootfs.cpio.gz.u-boot": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.cpio.gz.u-boot"
+  "nile-image-dev-kula.rootfs.tar.gz": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.tar.gz"
+  "nile-image-dev-kula.rootfs.qemuboot.conf": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.qemuboot.conf"
+  "qemu/nile-image-dev-kula.rootfs.wic.qemu-sd": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.wic.qemu-sd"
+  "qemu/plm-kula.elf": "tmp/deploy/images/kula/plm-kula.elf"
+  "qemu/cortexa72-linux.dtb": "tmp/deploy/images/kula/devicetree/cortexa72-linux.dtb"
+  "qemu/BOOT-kula_bh.bin": "tmp/deploy/images/kula/BOOT-kula_bh.bin"
+  "qemu/BOOT-kula.bin": "tmp/deploy/images/kula/BOOT-kula.bin"
+  "qemu/CDO": "tmp/deploy/images/kula/CDO"
+  "qemu/qemu-hw-devicetrees": "tmp/deploy/images/kula/qemu-hw-devicetrees"
+  "qemu/bin": "tmp/work/x86_64-linux/qemu-helper-native/1.0/recipe-sysroot-native/usr/bin"

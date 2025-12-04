@@ -1,0 +1,14 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/qemuarm.yml
+
+target:
+  - nile-image-dev
+
+artifacts:
+  "Image.bin": "tmp/deploy/images/qemuarm/zImage-qemuarm.bin"
+  "modules.tgz": "tmp/deploy/images/qemuarm/modules-qemuarm.tgz"
+  "qemu/nile-image-dev-qemuarm.rootfs.ext4": "tmp/deploy/images/qemuarm/nile-image-dev-qemuarm.rootfs.ext4"
+  "nile-image-dev-qemuarm.qemuboot.conf": "tmp/deploy/images/qemuarm/nile-image-dev-qemuarm.rootfs.qemuboot.conf"
