@@ -10,4 +10,6 @@ IMAGE_INSTALL = "\
     valgrind \
     "
 
+IMAGE_INSTALL:append:kula = " host-arm-net-mod"
+
 inherit core-image
