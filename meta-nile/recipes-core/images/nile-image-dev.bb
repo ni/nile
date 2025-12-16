@@ -8,6 +8,8 @@ IMAGE_INSTALL = "\
     ${CORE_IMAGE_EXTRA_INSTALL} \
     python3 \
     valgrind \
+    devmem2 \
+    tcpdump \
     "
 
 IMAGE_INSTALL:append:kula = " host-arm-net-mod"
