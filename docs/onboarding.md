@@ -65,9 +65,6 @@ It is recommended that your branch name be something like
 
 ## kas Configuration
 
-_TODO we probably need to hammer out this subdirectory layout; we're not
-following it yet._
-
 You should add one or more kas configuration yamls to the `kas` directory in
 nile:
 
@@ -75,44 +72,97 @@ nile:
 nile.git/
 |-- kas/
 |   |-- includes/
+|   |   |-- meta-xyzzy.yml
+|   |   |-- meta-*.yml
+|   |-- machines/
 |   |   |-- xyzzy.yml
 |   |-- targets/
-|   |   |-- xyzzy-firmware.yml
+|   |   |-- xyzzy-firmware_xyzzy.yml
 ... ... ...
 ```
 
+### Repo Includes
+
 You should add common repo configuration (and other necessary settings) into
-a common yml that can be shared amongst multiple build targets.
+a common YAML that can be shared amongst multiple build targets. Generally
+this should be one repo url/path per yml, although these may be combined if
+repos are related ("meta-xilinx" and "meta-xilinx-tools" might be in a
+single `meta-xilinx.yml`, for example.)
 
 ```yaml
-# xyzzy.yml
+# kas/includes/meta-xyzzy.yml
 
 header:
   version: 19
-  includes:
-    - kas/base.yml   # inherit base repo configuration
+
+local_conf_header:
+  some-feature-specific-to-these-repos: |
+    # if there are specific local.conf fragments for these repos, put
+    # them here (for example, setting LICENSE_FLAGS_ACCEPTED on xilinx
+    # repos)
 
 repos:
   meta-xyzzy:
     url: "https://github.com/ni/meta-xyzzy.git"
     path: "layers/meta-xyzzy"
     branch: "nile/26.0/scarthgap"
-    layers:
-      meta-xyzzy:
 ```
 
-meanwhile, yaml configuration under `targets/` should correspond one-to-one to
-pipeline build targets (see next section).
+### Machine Includes
+
+YAML configuration under `machines/` should include all repo ymls necessary,
+as well as define any additional layers needed for this machine type.
 
 ```yaml
-# xyzzy-firmware.yml
+# kas/machines/xyzzy.yml
 
 header:
   version: 19
   includes:
-    - kas/includes/xyzzy.yml
+    - kas/includes/base-config.yml
+    - kas/includes/meta-xyzzy.yml
+    # add includes for any other repos
+
+local_conf_header:
+  some-feature-specific-to-this-machine: |
+    # if there are specific local.conf fragments for this machine, put
+    # them here (for example, setting OLDEST_KERNEL, if this machine
+    # needs to use a kernel version below OE's requirements.)
 
 machine: xyzzy
+
+repos:
+  meta-xyzzy:
+    layers:
+      meta-xyzzy:
+```
+
+**NOTE**: [kas documentation](https://kas.readthedocs.io/en/latest/userguide/project-configuration.html#configuration-reference)
+says that if `layers` is omitted, then the repo itself is added as a layer.
+However, the actual merge logic will consider your `meta-xyzzy` key as
+having a null value, which will not merge with the include's definition in
+the expected way. The correct way to handle this case is by adding `.`:
+
+```
+repos:
+  meta-xyzzy:
+    layers:
+      .:
+```
+
+### Target Includes
+
+Meanwhile, YAML configuration under `targets/` should correspond one-to-one to
+pipeline build targets (see next section). It is recommended that this file
+be named `<target>_<machine>.yml`.
+
+```yaml
+# kas/targets/xyzzy-firmware_xyzzy.yml
+
+header:
+  version: 19
+  includes:
+    - kas/machines/xyzzy.yml
 
 target:
   - xyzzy-firmware
