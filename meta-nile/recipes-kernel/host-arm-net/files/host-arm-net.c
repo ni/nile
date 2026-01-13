@@ -93,6 +93,15 @@
 #define CTRL_RX_HEAD     0x08
 #define CTRL_RX_TAIL     0x0C
 
+/* MAC Layer Header */
+struct mac_header {
+	unsigned char dest_mac[6];    /* Destination MAC address */
+	unsigned char src_mac[6];     /* Source MAC address */
+	unsigned short ethertype;     /* Ethernet type/length field */
+} __attribute__((packed));
+
+#define MAC_HEADER_SIZE sizeof(struct mac_header)
+
 /* Private device structure */
 struct host_arm_net_priv {
 	struct net_device *ndev;
@@ -320,13 +329,19 @@ static netdev_tx_t host_arm_net_start_xmit(struct sk_buff *skb, struct net_devic
 	struct host_arm_net_priv *priv = netdev_priv(ndev);
 	unsigned long flags;
 	u32 next_tail;
+	struct mac_header mac_hdr;
+	u32 total_len;
 	
 	spin_lock_irqsave(&priv->lock, flags);
 	
+
+	/* Calculate total length including MAC header */
+	total_len = MAC_HEADER_SIZE + skb->len;
+
 	/* Check if packet is too large */
-	if (skb->len > MAX_PACKET_SIZE) {
+	if (total_len > MAX_PACKET_SIZE) {
 		dev_warn(&ndev->dev, "Packet too large: %u > %u, dropping\n",
-			 skb->len, MAX_PACKET_SIZE);
+			 total_len, MAX_PACKET_SIZE);
 		priv->stats.tx_dropped++;
 		dev_kfree_skb(skb);
 		spin_unlock_irqrestore(&priv->lock, flags);
@@ -341,9 +356,15 @@ static netdev_tx_t host_arm_net_start_xmit(struct sk_buff *skb, struct net_devic
 		return NETDEV_TX_BUSY;
 	}
 
-	/* Copy packet data to shared memory buffer */
+	/* Build MAC header with broadcast destination and IPv4 ethertype */
+	memset(mac_hdr.dest_mac, 0xFF, ETH_ALEN);  /* Broadcast MAC */
+	memcpy(mac_hdr.src_mac, ndev->dev_addr, ETH_ALEN);  /* Device MAC */
+	mac_hdr.ethertype = htons(ETH_P_IP);  /* IPv4 ethertype (0x0800) */
+
+	/* Copy MAC header and packet data to shared memory buffer */
 	u32 buffer_offset = TX_RING_OFFSET + priv->tx_tail * RING_SPACING;
-	memcpy_toio(priv->shared_mem + buffer_offset, skb->data, skb->len);
+	memcpy_toio(priv->shared_mem + buffer_offset, &mac_hdr, MAC_HEADER_SIZE);
+	memcpy_toio(priv->shared_mem + buffer_offset + MAC_HEADER_SIZE, skb->data, skb->len);
 	
 	/* Store SKB for later cleanup */
 	priv->tx_skb[priv->tx_tail] = skb;
@@ -355,17 +376,17 @@ static netdev_tx_t host_arm_net_start_xmit(struct sk_buff *skb, struct net_devic
 	
 	/* Notify remote processor via mailbox if not full */
 	if (!mbox_is_full(priv)) {
-		u32 msg = MBOX_MSG_PACK(skb->len, tx_index);
+		u32 msg = MBOX_MSG_PACK(total_len, tx_index);
 		mbox_write_data(priv, msg);
 	}
 	
 	u32 txhead = host_arm_net_read_reg(priv, CTRL_TX_HEAD);
 	u32 txtail = host_arm_net_read_reg(priv, CTRL_TX_TAIL);
-	dev_info(&ndev->dev, "Sent packet: %u bytes, tx_head: %u, tx_tail: %u\n", skb->len, txhead, txtail);
+	dev_info(&ndev->dev, "Sent packet: %u bytes, tx_head: %u, tx_tail: %u\n", total_len, txhead, txtail);
 
 	/* Update statistics */
 	priv->stats.tx_packets++;
-	priv->stats.tx_bytes += skb->len;
+	priv->stats.tx_bytes += total_len;
 	
 	spin_unlock_irqrestore(&priv->lock, flags);
 	
