@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-qt5:
+    url: "https://github.com/meta-qt5/meta-qt5"
+    path: "layers/meta-qt5"
+    branch: "scarthgap"

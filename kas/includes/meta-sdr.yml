@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-sdr:
+    url: "https://github.com/balister/meta-sdr"
+    path: "layers/meta-sdr"
+    branch: "walnascar"

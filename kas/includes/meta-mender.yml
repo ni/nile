@@ -1,0 +1,17 @@
+header:
+  version: 19
+
+env:
+  MENDER_ARTIFACT_NAME: git
+
+local_conf_header:
+  mender: |
+    INHERIT += "mender-full"
+    PREFERRED_PROVIDER:mender = "mender-client"
+    INIT_MANAGER = "systemd"
+
+repos:
+  meta-mender:
+    url: "https://github.com/mendersoftware/meta-mender"
+    path: "layers/meta-mender"
+    branch: "scarthgap"

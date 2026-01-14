@@ -1,0 +1,93 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/includes/meta-ettus.yml
+    - kas/includes/meta-mender.yml
+    - kas/includes/meta-xilinx.yml
+    - kas/includes/meta-stm32.yml
+    - kas/includes/meta-virtualization.yml
+    - kas/includes/meta-security.yml
+    - kas/includes/meta-sdr.yml
+    - kas/includes/meta-qt5.yml
+
+local_conf_header:
+  ensure-tpm-feature: |
+    DISTRO_FEATURES:append = " tpm"
+
+  using-old-kernel: |
+    OLDEST_KERNEL = "5.10"
+
+machine: ni-titanium-rev5-mender
+
+# meta-titanium/conf/multiconfig/ni-titanium.conf sets `DISTRO ?= "Alchemy"`
+# and this overrides kas's `distro` handling, so force it harder by setting
+# a DISTRO in `env`.
+env:
+  DISTRO: nile
+  MENDER_ARTIFACT_NAME: git_x4xx
+
+repos:
+  meta-ettus:
+    layers:
+      meta-ettus-bsp:
+      meta-ettus-core:
+      meta-titanium:
+      meta-mender-titanium:
+
+  meta-openembedded:
+    layers:
+      meta-oe:
+      meta-filesystems:
+      meta-networking:
+      meta-python:
+      meta-webserver:
+
+  meta-openamp:
+    layers:
+      .:
+
+  meta-mender:
+    layers:
+      meta-mender-core:
+    patches:
+      systemd-dont-set-source_date_epoch:
+        repo: meta-ettus
+        path: kas/patches/meta-mender/0002-systemd-don-t-set-SOURCE_DATE_EPOCH-to-0.patch
+
+  meta-arm:
+    layers:
+      meta-arm:
+      meta-arm-toolchain:
+
+  meta-xilinx:
+    layers:
+      meta-xilinx-core:
+      meta-xilinx-bsp:
+      meta-microblaze:
+      meta-xilinx-standalone:
+      meta-xilinx-standalone-sdt:
+
+  meta-amd-adaptive-socs:
+    layers:
+      meta-amd-adaptive-socs-core:
+
+  meta-stm32:
+    layers:
+      .:
+
+  meta-security:
+    layers:
+      meta-tpm:
+
+  meta-virtualization:
+    layers:
+      .:
+
+  meta-sdr:
+    layers:
+      .:
+
+  meta-qt5:
+    layers:
+      .:
