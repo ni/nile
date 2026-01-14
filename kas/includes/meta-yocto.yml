@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-yocto:
+    url: "https://git.yoctoproject.org/meta-yocto.git"
+    path: "layers/meta-yocto"
+    branch: "scarthgap"

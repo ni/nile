@@ -1,11 +1,11 @@
 header:
   version: 19
+  includes:
+    - kas/includes/meta-yocto.yml
 
 machine: genericarm64
 
 repos:
   meta-yocto:
-    url: "https://git.yoctoproject.org/meta-yocto.git"
-    path: "layers/meta-yocto"
     layers:
       meta-yocto-bsp:
