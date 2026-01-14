@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-security:
+    url: "https://git.yoctoproject.org/meta-security.git"
+    path: "layers/meta-security"
+    branch: "scarthgap"

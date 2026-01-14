@@ -1,0 +1,21 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/x4xx.yml
+
+target:
+  - mc:ni-titanium-ec:chromium-ec
+  - mc:ni-titanium:gnuradio-image
+
+artifacts:
+  "gnuradio-image-ni-titanium-rev5-mender.cve": "tmp/deploy/images/ni-titanium-rev5-mender/gnuradio-image-ni-titanium-rev5-mender.cve"
+  "gnuradio-image-ni-titanium-rev5-mender.manifest": "tmp/deploy/images/ni-titanium-rev5-mender/gnuradio-image-ni-titanium-rev5-mender.manifest"
+  "gnuradio-image-ni-titanium-rev5-mender.mender": "tmp/deploy/images/ni-titanium-rev5-mender/gnuradio-image-ni-titanium-rev5-mender.mender"
+  "gnuradio-image-ni-titanium-rev5-mender.sdimg.bz2": "tmp/deploy/images/ni-titanium-rev5-mender/gnuradio-image-ni-titanium-rev5-mender.sdimg.bz2"
+  "gnuradio-image-ni-titanium-rev5-mender.spdx.tar.zst": "tmp/deploy/images/ni-titanium-rev5-mender/gnuradio-image-ni-titanium-rev5-mender.spdx.tar.zst"
+  "u-boot-jtag-files-ni-titanium-rev5-mender.zip": "tmp/deploy/images/ni-titanium-rev5-mender/u-boot-jtag-files-ni-titanium-rev5-mender.zip"
+  "manufacturing-image-ni-titanium-rev5-mender.cpio.gz": "tmp/deploy/images/ni-titanium-rev5-mender/manufacturing-image-ni-titanium-rev5-mender.cpio.gz"
+  "manufacturing-image-ni-titanium-rev5-mender.cve": "tmp/deploy/images/ni-titanium-rev5-mender/manufacturing-image-ni-titanium-rev5-mender.cve"
+  "manufacturing-image-ni-titanium-rev5-mender.manifest": "tmp/deploy/images/ni-titanium-rev5-mender/manufacturing-image-ni-titanium-rev5-mender.manifest"
+  "manufacturing-image-ni-titanium-rev5-mender.spdx.tar.zst": "tmp/deploy/images/ni-titanium-rev5-mender/manufacturing-image-ni-titanium-rev5-mender.spdx.tar.zst"

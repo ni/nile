@@ -1,0 +1,26 @@
+header:
+  version: 19
+
+local_conf_header:
+  # TODO: meta-ettus-core's python3-gpiod recipe adds libgpiod-gpiosim as a
+  # dependency for ptests, but that dependency doesn't seem to exist with the
+  # version of libgpiod in scarthgap. This breaks use of the "ptest" DISTRO_FEATURE.
+  # Explicitly remove this dependency to work around this.
+  remove-gpiosim-dependency: |
+    RDEPENDS:python3-gpiod-ptest:remove = "libgpiod-gpiosim"
+
+  using-uhd: |
+    PACKAGECONFIG:pn-gnuradio ?= "uhd zeromq"
+    PACKAGECONFIG:pn-gr-osmosdr ?= "uhd"
+    PACKAGECONFIG:pn-boost ?= "locale python"
+
+    PREFERRED_UHD_VERSION ?= "4.9%"
+    PREFERRED_VERSION_uhd ?= "${PREFERRED_UHD_VERSION}"
+    PREFERRED_VERSION_uhd-fpga-images ?= "${PREFERRED_UHD_VERSION}"
+    PREFERRED_VERSION_mpmd ?= "${PREFERRED_UHD_VERSION}"
+
+repos:
+  meta-ettus:
+    url: "https://github.com/EttusResearch/meta-ettus-dev"
+    path: "layers/meta-ettus"
+    branch: "scarthgap"
