@@ -1,16 +1,13 @@
 header:
   version: 19
+  includes:
+    - kas/includes/meta-xilinx.yml
+    - kas/includes/meta-virtualization.yml
 
 machine: kula
 
-local_conf_header:
-  xilinx-licenses: |
-    LICENSE_FLAGS_ACCEPTED += " xilinx"
-
 repos:
   meta-xilinx:
-    url: "https://github.com/Xilinx/meta-xilinx.git"
-    path: "layers/meta-xilinx"
     layers:
       meta-xilinx-bsp:
       meta-microblaze:
@@ -19,20 +16,13 @@ repos:
       meta-xilinx-standalone-sdt:
 
   meta-xilinx-tools:
-    url: "https://github.com/Xilinx/meta-xilinx-tools.git"
-    path: "layers/meta-xilinx-tools"
+    layers:
+      .:
 
   meta-amd-adaptive-socs:
-    url: "https://github.com/Xilinx/meta-amd-adaptive-socs.git"
-    path: "layers/meta-amd-adaptive-socs"
     layers:
       meta-amd-adaptive-socs-core:
 
   meta-openamp:
-    url: "https://github.com/Xilinx/meta-openamp.git"
-    path: "layers/meta-openamp"
-    branch: "rel-v2025.1"
-
-  meta-virtualization:
-    url: "https://git.yoctoproject.org/meta-virtualization.git"
-    path: "layers/meta-virtualization"
+    layers:
+      .:

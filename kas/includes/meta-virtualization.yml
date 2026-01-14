@@ -1,0 +1,12 @@
+header:
+  version: 19
+
+local_conf_header:
+  ensure-virtualization-feature: |
+    DISTRO_FEATURES:append = " virtualization"
+
+repos:
+  meta-virtualization:
+    url: "https://git.yoctoproject.org/meta-virtualization.git"
+    path: "layers/meta-virtualization"
+    branch: "scarthgap"
