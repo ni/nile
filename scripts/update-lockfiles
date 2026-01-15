@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+#
+# Script to mass-update lockfiles for nile targets.
+#
+# By default, this enumerates all the targets under kas/targets/*
+#
+# Typically this would be invoked as "./scripts/update-lockfiles --update"
+
+import os
+import sys
+import subprocess
+import argparse
+import shutil
+from pathlib import Path
+from collections.abc import Iterator
+
+DEFAULT_LOG_LEVEL = 'info'
+
+class TargetStatus:
+    GOOD = "good"
+    NO_CHANGE = "no_change"
+    LOCKFILE_UPDATE_FAILURE = "lockfile_failure"
+    CLEAN_FAILURE = "clean_failure"
+    BUILD_FAILURE = "build_failure"
+    BUILD_SUCCESS = "build_success"
+
+
+def get_colorized_status(ts : TargetStatus) -> str:
+    if sys.stdout.isatty():
+        red = "\033[0;31m"
+        green = "\033[0;32m"
+        light_grey = "\033[0;37m"
+        end = "\033[0m"
+    else:
+        red = green = light_grey = end = ""
+
+    if ts == TargetStatus.GOOD:
+        return f"{green}[good      ]{end}"
+    elif ts == TargetStatus.NO_CHANGE:
+        return f"{light_grey}[no-changes]{end}"
+    elif ts == TargetStatus.LOCKFILE_UPDATE_FAILURE:
+        return f"{red}[lockf-fail]{end}"
+    elif ts == TargetStatus.CLEAN_FAILURE:
+        return f"{red}[clean-fail]{end}"
+    elif ts == TargetStatus.BUILD_FAILURE:
+        return f"{red}[build-fail]{end}"
+    elif ts == TargetStatus.BUILD_SUCCESS:
+        return f"{green}[build-pass]{end}"
+
+
+# we're in the /scripts directory, ascend to parent to get the nile root dir
+root_path = Path(__file__).parent.parent
+kas_container = root_path.joinpath("kas-container")
+
+default_kas_target_cfgs_dir = root_path.joinpath("kas", "targets")
+ni_org_yml = root_path.joinpath("kas", "includes", "ni-org.yml")
+
+# prefer icdiff for better colorized side-by-side diffs if present
+# otherwise just use diff -y (which doesn't colorize in that mode :( )
+icdiff = shutil.which("icdiff")
+if icdiff:
+    side_by_side_diff_cmd = [icdiff, "--cols=130", "--no-headers", "--whole-file"]
+else:
+    side_by_side_diff_cmd = ["diff", "-y"]
+
+
+# return the lockfile for this yml path, and also its backup location
+def lockfile_for_target_yml(p: Path) -> tuple[Path, Path]:
+    return (p.with_suffix('.lock.yml'), p.with_suffix('.lock.yml.bak'))
+
+
+def collect_all_target_yml_paths(p: Path) -> Iterator[Path]:
+    for root, dirs, files in os.walk(p):
+        for file in files:
+            # only look at ymls that are not themselves lockfiles
+            filepath = Path(root).joinpath(file)
+            if filepath.suffixes == [".yml"] and not filepath.suffixes == [".lock", ".yml"]:
+                yield filepath
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--log-level',
+        choices=['debug', 'info', 'warning', 'error', 'critical'],
+        default=f'{DEFAULT_LOG_LEVEL}',
+        help=f'Set log level (default: {DEFAULT_LOG_LEVEL})')
+
+    parser.add_argument('--update', action='store_true',
+        help='Pull new upstream changes to the desired '
+             'branch even if it is already checked out locally')
+    parser.add_argument('--ni-org', action='store_true',
+        help='add ni-org.yml include for builds')
+
+    parser.add_argument('target',
+                        help='target.yml or directory of target ymls',
+                        nargs='*',
+                        default=[default_kas_target_cfgs_dir])
+    args = parser.parse_args()
+
+    base_lock_cmd_args = [kas_container]
+    base_lock_cmd_args.extend(['--log-level', args.log_level])
+    base_lock_cmd_args.append('lock')
+
+    # pass --update option through to `kas lock`
+    if args.update:
+        base_lock_cmd_args.append('--update')
+
+    # force output to 2-space indent, sorted
+    base_lock_cmd_args.extend(['--indent', '2', '--sort'])
+
+    base_build_cmd_args = [kas_container, 'build']
+    base_clean_cmd_args = [kas_container, 'clean']
+
+    target_list = {}
+
+    # Update all the lockfiles first, before we do any builds. Ideally, we'd like
+    # for all the layer repo commits amongst all targets to be as close in time as
+    # possible, so we do this up-front before the lengthier build step.
+    for target in args.target:
+        for yml in collect_all_target_yml_paths(target):
+            target_list[yml] = TargetStatus.GOOD
+
+            # back up the lockfile, if it exists
+            lock_yml, backup_lock_yml = lockfile_for_target_yml(yml)
+            if os.path.exists(lock_yml):
+                shutil.copy2(lock_yml, backup_lock_yml)
+
+            # update or create lockfile
+            cmd_args = base_lock_cmd_args.copy()
+            cmd_args.append(yml)
+            print(f"Updating lockfile for {yml}")
+            try:
+                subprocess.run(cmd_args, check=True)
+            except subprocess.CalledProcessError as cpe:
+                print(f"Failure updating lockfile for {yml}")
+                print(f"{cpe.cmd} returned exit code {cpe.returncode}")
+                target_list[yml] = TargetStatus.LOCKFILE_UPDATE_FAILURE
+
+    # now build every target
+    for yml, status in target_list.items():
+        if status == TargetStatus.GOOD:
+            lock_yml, backup_lock_yml = lockfile_for_target_yml(yml)
+
+            # Has there been a change to the lockfile?
+            # If no, there's no need to rebuild.
+            if backup_lock_yml.exists():
+                cmd_args = ['diff', '-q', backup_lock_yml, lock_yml]
+                res = subprocess.run(cmd_args)
+                if res.returncode == 0:
+                    print(f"Skipping build of target {yml} (no change in lockfile)")
+                    os.unlink(backup_lock_yml)
+                    target_list[yml] = TargetStatus.NO_CHANGE
+                    continue
+                else:
+                    cmd_args = [*side_by_side_diff_cmd, backup_lock_yml, lock_yml]
+                    print("Diff of lockfile changes:")
+                    subprocess.run(cmd_args)
+
+            # clean build artifacts
+            # (`kas clean` keeps sstate cache and downloads)
+            cmd_args = base_clean_cmd_args.copy()
+            cmd_args.append(yml)
+            print(f"Cleaning target from {yml}")
+            try:
+                subprocess.run(cmd_args, check=True)
+            except subprocess.CalledProcessError as cpe:
+                print(f"Failure cleaning target")
+                print(f"{cpe.cmd} returned exit code {cpe.returncode}")
+                target_list[yml] = TargetStatus.CLEAN_FAILURE
+                continue
+
+            # attempt build
+            cmd_args = base_build_cmd_args.copy()
+            if args.ni_org:
+                cmd_args.append(f"{yml}:{ni_org_yml}")
+            else:
+                cmd_args.append(yml)
+            try:
+                print(f"Building target from {yml}")
+                subprocess.run(cmd_args, check=True)
+                target_list[yml] = TargetStatus.BUILD_SUCCESS
+                if os.path.exists(backup_lock_yml):
+                    print(f"Removing backup lockfile.")
+                    os.unlink(backup_lock_yml)
+            except subprocess.CalledProcessError as cpe:
+                print(f"Failure building against updated lockfile for {yml}")
+                print(f"{cpe.cmd} returned exit code {cpe.returncode}")
+                target_list[yml] = TargetStatus.BUILD_FAILURE
+                if os.path.exists(backup_lock_yml):
+                    print(f"Reverting lockfile change.")
+                    shutil.copy2(backup_lock_yml, lock_yml)
+
+    # Output a summary report
+    print("Progress Report:")
+    for yml, status in target_list.items():
+        print(f"- {get_colorized_status(status)} {yml}")
+
+    # exit code should be fatal on any failure
+    for yml, status in target_list.items():
+        if (status == TargetStatus.LOCKFILE_UPDATE_FAILURE or
+                status == TargetStatus.CLEAN_FAILURE or
+                status == TargetStatus.BUILD_FAILURE):
+            return 1
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+
