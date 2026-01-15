@@ -1,0 +1,12 @@
+header:
+  version: 14
+overrides:
+  repos:
+    bitbake:
+      commit: 8dcf084522b9c66a6639b5f117f554fde9b6b45a
+    meta-arm:
+      commit: a81c19915b5b9e71ed394032e9a50fd06919e1cd
+    meta-openembedded:
+      commit: 2759d8870ea387b76c902070bed8a6649ff47b56
+    openembedded-core:
+      commit: 6988157ad983978ffd6b12bcefedd4deaffdbbd1
