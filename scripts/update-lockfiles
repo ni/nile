@@ -1,0 +1,163 @@
+#!/usr/bin/python3
+#
+# Script to mass-update lockfiles for nile targets.
+#
+# By default, this enumerates all the targets under kas/targets/*
+#
+# Typically this would be invoked as "./scripts/update-lockfiles --update"
+
+import os
+import sys
+import subprocess
+import argparse
+import shutil
+from pathlib import Path
+
+DEFAULT_LOG_LEVEL = 'info'
+
+root_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+kas_container = os.path.join(root_path, "kas-container")
+
+default_kas_target_cfgs_dir = os.path.join(root_path, "kas", "targets")
+ni_org_yml = os.path.join(root_path, "kas", "includes", "ni-org.yml")
+
+
+def lockfile_for_target_yml(p):
+    file = Path(p)
+    return str(file.parent / (file.stem + '.lock.yml'))
+
+
+def collect_all_target_yml_paths(p):
+    for root, dirs, files in os.walk(p):
+        for file in files:
+            # only look at ymls that are not themselves lockfiles
+            if file.endswith(".yml") and not file.endswith(".lock.yml"):
+                filename = os.path.join(root, file)
+                yield filename
+        for dir in dirs:
+            collect_all_target_yml_paths(os.path.join(p, dir))
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--log-level',
+        choices=['debug', 'info', 'warning', 'error', 'critical'],
+        default=f'{DEFAULT_LOG_LEVEL}',
+        help=f'Set log level (default: {DEFAULT_LOG_LEVEL})')
+
+    # wrappers around kas lock options:
+    parser.add_argument('--update', action='store_true',
+        help='Pull new upstream changes to the desired '
+             'branch even if it is already checked out locally')
+    parser.add_argument('--indent', type=int,
+        default=2,    # default to two-space indents, not four 
+        help='Line indent (# of spaces, default: 2)')
+    parser.add_argument('--no-sort', action='store_true',
+        default=True, # default to sort, but add a way to inhibit sorting
+        help='Alphanumerically sort keys in output')
+
+    # our own options:
+    parser.add_argument('--ni-org', action='store_true',
+        help='add ni-org.yml include for builds')
+
+    parser.add_argument('target',
+                        help='target.yml or directory of target ymls',
+                        nargs='*',
+                        default=[default_kas_target_cfgs_dir])
+    args = parser.parse_args()
+
+    base_lock_cmd_args = [kas_container]
+    base_lock_cmd_args.extend(['--log-level', args.log_level])
+    base_lock_cmd_args.append('lock')
+
+    if args.update:
+        base_lock_cmd_args.append('--update')
+
+    base_lock_cmd_args.extend(['--indent', str(args.indent)])
+
+    if not args.no_sort:
+        base_lock_cmd_args.append('--sort')
+
+    base_build_cmd_args = [kas_container, 'build']
+    base_clean_cmd_args = [kas_container, 'clean']
+
+    # Update all the lockfiles first, before we do any builds. Ideally, we'd like
+    # for all the layer repo commits amongst all targets to be as close in time as
+    # possible, so we do this up-front before the lengthier build step.
+    for target in args.target:
+        for yml in collect_all_target_yml_paths(target):
+            # back up the lockfile, if it exists
+            lock_yml = lockfile_for_target_yml(yml)
+            if os.path.exists(lock_yml):
+                shutil.copy2(lock_yml, lock_yml + ".bak")
+
+            # update or create lockfile
+            cmd_args = base_lock_cmd_args.copy()
+            cmd_args.append(yml)
+            print("Updating lockfile for {}".format(yml))
+            subprocess.run(cmd_args, check=True)
+
+    target_build_failures = {}
+
+    # now build every target
+    for target in args.target:
+        for yml in collect_all_target_yml_paths(target):
+            lock_yml = lockfile_for_target_yml(yml)
+
+            # Has there been a change to the lockfile?
+            # If no, there's no need to rebuild.
+            if os.path.exists(lock_yml + ".bak"):
+                cmd_args = ['diff', '-q', lock_yml + ".bak", lock_yml]
+                res = subprocess.run(cmd_args)
+                if res.returncode == 0:
+                    print("Skipping build of target {} (no change in lockfile)".format(yml))
+                    continue
+                else:
+                    cmd_args = ['diff', '-y', lock_yml + ".bak", lock_yml]
+                    print("Diff of lockfile changes:")
+                    subprocess.run(cmd_args)
+
+            # clean build artifacts
+            # (`kas clean` keeps sstate cache and downloads)
+            cmd_args = base_clean_cmd_args.copy()
+            cmd_args.append(yml)
+            print("Cleaning target from {}".format(yml))
+            subprocess.run(cmd_args, check=True)
+
+            # attempt build
+            cmd_args = base_build_cmd_args.copy()
+            if args.ni_org:
+                cmd_args.append(yml + ":" + ni_org_yml)
+            else:
+                cmd_args.append(yml)
+            try:
+                print("Building target from {}".format(yml))
+                subprocess.run(cmd_args, check=True)
+            except subprocess.CalledProcessError as cpe:
+                print("{} returned exit code {}".format(cpe.cmd, cpe.returncode))
+                target_build_failures[yml] = True
+
+    if len(target_build_failures) > 0:
+        print("Rebuild failures when updating lockfiles on the following targets:")
+        for yml,v in target_build_failures.items():
+            print("- {}".format(yml))
+
+        print("Reverting lockfiles for targets that had build failures.")
+        for yml,v in target_build_failures.items():
+            lock_yml = lockfile_for_target_yml(yml)
+            if os.path.exists(lock_yml + ".bak"):
+                shutil.copy2(lock_yml + ".bak", lock_yml)
+    else:
+        print("All targets built successfully.")
+
+    # Clean up remaining lockfile backups.
+    for yml in collect_all_target_yml_paths(target):
+        lock_yml = lockfile_for_target_yml(yml)
+        if os.path.exists(lock_yml + ".bak"):
+            os.unlink(lock_yml + ".bak")
+    
+
+if __name__ == '__main__':
+    main()
+
+
