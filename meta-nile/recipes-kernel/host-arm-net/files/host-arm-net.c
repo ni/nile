@@ -95,11 +95,10 @@
 
 /* MAC Layer Header */
 struct mac_header {
-	unsigned char dest_mac[6];    /* Destination MAC address */
-	unsigned char src_mac[6];     /* Source MAC address */
-	unsigned short ethertype;     /* Ethernet type/length field */
+	__u8 dest_mac[ETH_ALEN];    /* Destination MAC address */
+	__u8 src_mac[ETH_ALEN];     /* Source MAC address */
+	__be16 ethertype;     /* Ethernet type/length field */
 } __attribute__((packed));
-
 #define MAC_HEADER_SIZE sizeof(struct mac_header)
 
 /* Private device structure */
