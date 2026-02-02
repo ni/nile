@@ -25,6 +25,6 @@ if [ -n "${AZDO_TOKEN}" ]; then
 	echo "machine dev.azure.com login api password ${AZDO_TOKEN}" >> $NETRC
 fi
 
-#if [ -n "${GITHUB_TOKEN}" ]; then
-#	echo "machine github.com login api password ${GITHUB_TOKEN}" >> $NETRC
-#fi
+if [ -n "${GITHUB_TOKEN}" ]; then
+	echo "machine github.com login api password ${GITHUB_TOKEN}" >> $NETRC
+fi
