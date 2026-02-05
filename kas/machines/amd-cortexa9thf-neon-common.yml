@@ -1,0 +1,11 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/meta-xilinx.yml
+
+machine: amd-cortexa9thf-neon-common
+
+repos:
+  meta-xilinx:
+    layers:
+      meta-xilinx-core:
