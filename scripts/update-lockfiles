@@ -6,6 +6,7 @@
 #
 # Typically this would be invoked as "./scripts/update-lockfiles --update"
 
+import logging
 import os
 import sys
 import subprocess
@@ -70,12 +71,19 @@ def lockfile_for_target_yml(p: Path) -> tuple[Path, Path]:
 
 
 def collect_all_target_yml_paths(p: Path) -> Iterator[Path]:
-    for root, dirs, files in os.walk(p):
-        for file in files:
-            # only look at ymls that are not themselves lockfiles
-            filepath = Path(root).joinpath(file)
-            if filepath.suffixes == [".yml"] and not filepath.suffixes == [".lock", ".yml"]:
-                yield filepath
+    if p.is_file() and p.suffixes == [".yml"] and not p.suffixes == [".lock", ".yml"]:
+        logging.debug(f"Single file: {p}")
+        yield p
+    else:
+        logging.debug(f"Walking directory: {p}")
+        for root, dirs, files in os.walk(p):
+            for file in files:
+                logging.debug(f"Evaluating file f{file}")
+
+                # only look at ymls that are not themselves lockfiles
+                filepath = Path(root).joinpath(file)
+                if filepath.suffixes == [".yml"] and not filepath.suffixes == [".lock", ".yml"]:
+                    yield filepath
 
 
 def main():
@@ -97,6 +105,10 @@ def main():
                         default=[default_kas_target_cfgs_dir])
     args = parser.parse_args()
 
+    logging.getLogger().setLevel(args.log_level.upper())
+    logging.debug("Debug logging enabled")
+    logging.debug(f"args: {args}")
+
     base_lock_cmd_args = [kas_container]
     base_lock_cmd_args.extend(['--log-level', args.log_level])
     base_lock_cmd_args.append('lock')
@@ -117,7 +129,10 @@ def main():
     # for all the layer repo commits amongst all targets to be as close in time as
     # possible, so we do this up-front before the lengthier build step.
     for target in args.target:
-        for yml in collect_all_target_yml_paths(target):
+        logging.debug(f"Evaluating target arg: {target}")
+
+        for yml in collect_all_target_yml_paths(Path(target)):
+            logging.debug(f"YAML file: {yml}")
             target_list[yml] = TargetStatus.GOOD
 
             # back up the lockfile, if it exists
