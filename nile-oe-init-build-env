@@ -157,6 +157,19 @@ pyrex_cleanup() {
 # can be picked up by invocations of git within the container.
 ${REPO_ROOT}/scripts/init-netrc "${BUILDDIR}/.netrc"
 
+if [ -t 1 ]; then
+	RED="\033[0;31m"
+	CLEAR="\033[0m"
+else
+	RED=""
+	CLEAR=""
+fi
+
+echo -e "${RED}*****************************************************************${CLEAR}"
+echo -e "${RED}***${CLEAR} The pyrex-based workflow is deprecated and is slated for  ${RED}***${CLEAR}"
+echo -e "${RED}***${CLEAR} removal. Please start using kas instead; see docs/kas.md. ${RED}***${CLEAR}"
+echo -e "${RED}*****************************************************************${CLEAR}"
+
 # Invoke pyrex to: standup our build container and BB build directory, and to
 # "capture" the current shell within the pyrex toolchain context.
 "$PYREX_ROOT/pyrex.py" capture \
