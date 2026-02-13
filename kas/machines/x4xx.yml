@@ -10,6 +10,7 @@ header:
     - kas/includes/meta-security.yml
     - kas/includes/meta-sdr.yml
     - kas/includes/meta-qt5.yml
+    - kas/includes/xilinx-device-common.yml
 
 local_conf_header:
   ensure-tpm-feature: |
