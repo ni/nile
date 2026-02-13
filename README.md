@@ -32,44 +32,8 @@ These require `git` to be aware of authentication credentials.
 Getting Started
 ---------------
 
-1. Clone the git repository:
-
-    $ git clone https://github.com/ni/nile.git
-
-2. Check out the appropriate branch (default scarthgap based branch is OK for now):
-
-    $ cd nile
-
-3. Update the submodules:
-
-    $ git submodule update --init --recursive
-
-4. Build docker image for pyrex
-
-    $ bash ./docker/create-build-nile.sh
-
-	Verify the image was created:
-    $ docker images build-nile
-
-5. Initialize the build system:
-
-    $ source ./nile-oe-init-build-env
-
-6. Build an image:
-
-    $ bitbake nile-image-dev
-
-7. Test it in qemu with:
-
-    $ runqemu nile-image-dev
-
-8. Build an sdk:
-
-    $ bitbake -c populate_sdk nile-image-dev
-
-
-Getting Started (KAS)
----------------------
+NILE is built using `kas`. The [pyrex/submodule-based workflow](docs/getting-started.pyrex.md)
+is still present but is deprecated.
 
 1. Clone the git repository:
 
@@ -85,25 +49,29 @@ Getting Started (KAS)
 
 3. Build docker image for kas
 
-    $ bash ./docker/create-build-nile.sh --base kas
+   ```
+   $ bash ./docker/create-build-nile.sh --base kas
+   ```
 
-	Verify the image was created:
-    $ docker images build-nile
+   Verify the image was created:
+   ```
+   $ docker images build-nile
+   ```
 
 4. Build an image:
 
    ```
-   $ ./kas-container build kas/kula.yml
+   $ ./kas-container build kas/targets/nile-image-dev_kula.yml
    ```
 
 5. Test it in qemu with:
 
    ```
-   $ ./kas-runqemu kas/kula.yml
+   $ ./kas-runqemu kas/targets/nile-image-dev_kula.yml
    ```
 
 6. Build an sdk:
 
    ```
-   $ ./kas-container build kas/default-sdk.yml
+   $ ./kas-container build kas/targets/meta-toolchain_genericarm64.yml
    ```
