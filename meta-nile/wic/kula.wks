@@ -1,0 +1,6 @@
+part         --source rootfs --change-directory=boot  --fixed-size=64M   --fstype=vfat  --use-label  --label boot    --active  --align 4
+part                                                  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelA           --align 4
+part                                                  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelB           --align 4
+part  /      --source rootfs --exclude-path=boot/     --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsA           --align 4
+part  /      --source rootfs --exclude-path=boot/     --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsB           --align 4
+part  /data                                           --size=150M        --fstype=ext4  --use-label  --label data              --align 4
