@@ -9,9 +9,6 @@ fitimage_name=@@FIT_IMAGE@@
 kernel_name=@@KERNEL_IMAGE@@
 ramdisk_name=@@RAMDISK_IMAGE1@@
 rootfs_name=@@RAMDISK_IMAGE@@
-# The value of fit_image_partition corresponds to the partition layout defined in the .wks file.
-fit_image_partition=2
-dtb_image_name=fdt-cortexa72-linux.dtb
 @@PRE_BOOTENV@@
 
 for boot_target in ${boot_targets};
@@ -41,10 +38,10 @@ do
 			fi
 		fi
 		echo "Checking for /${fitimage_name}"
-		if test -e ${devtype} ${devnum}:${fit_image_partition} /${fitimage_name}; then
-			ext4load ${devtype} ${devnum}:${fit_image_partition} @@FIT_IMAGE_LOAD_ADDRESS@@ ${fitimage_name};
+		if test -e ${devtype} ${devnum}:@@DEFAULT_FIT_IMAGE_PARTITION@@ /${fitimage_name}; then
+			ext4load ${devtype} ${devnum}:@@DEFAULT_FIT_IMAGE_PARTITION@@ @@FIT_IMAGE_LOAD_ADDRESS@@ ${fitimage_name};
 			echo "Kernel root filesystem parameter needs to be set for FITIMAGE boot if not defined in DTB"
-			imxtract @@FIT_IMAGE_LOAD_ADDRESS@@ ${dtb_image_name} @@DEVICETREE_ADDRESS@@
+			imxtract @@FIT_IMAGE_LOAD_ADDRESS@@ @@FIT_DTB_IMAGE_NAME@@ @@DEVICETREE_ADDRESS@@
 			fdt addr @@DEVICETREE_ADDRESS@@
 			fdt get value bootargs /chosen bootargs
 			setenv bootargs $bootargs @@KERNEL_COMMAND_APPEND@@ @@KERNEL_ROOT_SD@@
