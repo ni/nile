@@ -1,7 +1,7 @@
 # The partition layout defined in this file is tied to other variables that refer to these partitions.
 # These references include:
 # -PARTNUM in kula.conf
-# -fit_image_partition in boot.cmd.generic.root
+# -DEFAULT_FIT_IMAGE_PARTITION in kula.conf
 part         --source bootimg-partition                                    --fixed-size=64M   --fstype=vfat  --use-label  --label boot    --active  --align 1024
 part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelA           --align 1024
 part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelB           --align 1024
