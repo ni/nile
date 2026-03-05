@@ -8,6 +8,11 @@ header:
 machine: kula
 
 repos:
+  meta-iba:
+    path: "meta-iba"
+    layers:
+      .:
+
   meta-xilinx:
     layers:
       meta-xilinx-bsp:
