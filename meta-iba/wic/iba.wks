@@ -1,10 +1,13 @@
-# The partition layout defined in this file is tied to other variables that refer to these partitions.
+# The partition layout defined in this file is tied to various references to these partitions.
 # These references include:
 # -PARTNUM in kula.conf
 # -DEFAULT_FIT_IMAGE_PARTITION in kula.conf
-part         --source bootimg-partition                                    --fixed-size=64M   --fstype=vfat  --use-label  --label boot    --active  --align 1024
-part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelA           --align 1024
-part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelB           --align 1024
-part  /      --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsA           --align 1024
-part  /      --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsB           --align 1024
-part  /data                                                                --size=150M        --fstype=ext4  --use-label  --label data              --align 1024
+# Note that while not directly tied to any of these partitions, the u-boot environment store
+# is configured to reside in unpartitioned space before the first partition. The u-boot
+# environment store is configured in a u-boot-xlnx bbappend and in /etc/fw_env.config.
+part         --source bootimg-partition                                    --fixed-size=64M   --fstype=vfat  --use-label  --label uboot    --active  --align 1024
+part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelA            --align 1024
+part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fixed-size=200M  --fstype=ext4  --use-label  --label kernelB            --align 1024
+part  /      --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsA            --align 1024
+part  /      --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsB            --align 1024
+part  /data                                                                --size=150M        --fstype=ext4  --use-label  --label data               --align 1024
