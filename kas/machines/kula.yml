@@ -3,6 +3,7 @@ header:
   includes:
     - kas/includes/meta-xilinx.yml
     - kas/includes/meta-virtualization.yml
+    - kas/includes/meta-rauc.yml
     - kas/includes/xilinx-device-common.yml
 
 machine: kula
