@@ -1,0 +1,12 @@
+header:
+  version: 19
+
+local_conf_header:
+  enable-rauc-feature: |
+    DISTRO_FEATURES:append = " rauc"
+
+repos:
+  meta-rauc:
+    url: "https://github.com/rauc/meta-rauc"
+    path: "layers/meta-rauc"
+    branch: "scarthgap"

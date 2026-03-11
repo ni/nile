@@ -11,6 +11,10 @@ ramdisk_name=@@RAMDISK_IMAGE1@@
 rootfs_name=@@RAMDISK_IMAGE@@
 @@PRE_BOOTENV@@
 
+test -n "${BOOT_ORDER}" || setenv BOOT_ORDER "A B"
+test -n "${BOOT_A_LEFT}" || setenv BOOT_A_LEFT 3
+test -n "${BOOT_B_LEFT}" || setenv BOOT_B_LEFT 3
+
 for boot_target in ${boot_targets};
 do
 	echo "Trying to load boot images from ${boot_target}"
@@ -38,16 +42,49 @@ do
 			fi
 		fi
 		echo "Checking for /${fitimage_name}"
-		if test -e ${devtype} ${devnum}:@@DEFAULT_FIT_IMAGE_PARTITION@@ /${fitimage_name}; then
-			ext4load ${devtype} ${devnum}:@@DEFAULT_FIT_IMAGE_PARTITION@@ @@FIT_IMAGE_LOAD_ADDRESS@@ ${fitimage_name};
-			echo "Kernel root filesystem parameter needs to be set for FITIMAGE boot if not defined in DTB"
-			imxtract @@FIT_IMAGE_LOAD_ADDRESS@@ @@FIT_DTB_IMAGE_NAME@@ @@DEVICETREE_ADDRESS@@
-			fdt addr @@DEVICETREE_ADDRESS@@
-			fdt get value bootargs /chosen bootargs
-			setenv bootargs $bootargs @@KERNEL_COMMAND_APPEND@@ @@KERNEL_ROOT_SD@@
-			fdt set /chosen bootargs "${bootargs}"
-			bootm @@FIT_IMAGE_LOAD_ADDRESS@@ - @@DEVICETREE_ADDRESS@@
+		setenv fit_image_partition
+		for BOOT_SLOT in "${BOOT_ORDER}"; do
+			if test "x${fit_image_partition}" != "x"; then
+				# skip remaining slots
+			elif test "x${BOOT_SLOT}" = "xA"; then
+				if test 0x${BOOT_A_LEFT} -gt 0; then
+					if test -e ${devtype} ${devnum}:@@FIT_IMAGE_PARTITION_A@@ /${fitimage_name}; then
+						echo "Found valid slot A, ${BOOT_A_LEFT} attempts remaining"
+						setexpr BOOT_A_LEFT ${BOOT_A_LEFT} - 1
+						setenv fit_image_partition @@FIT_IMAGE_PARTITION_A@@
+						setenv rootfs_partition @@ROOTFS_PARTITION_A@@
+						setenv rauc_slot @@RAUC_SLOT_A@@
+					fi
+				fi
+			elif test "x${BOOT_SLOT}" = "xB"; then
+				if test 0x${BOOT_B_LEFT} -gt 0; then
+					if test -e ${devtype} ${devnum}:@@FIT_IMAGE_PARTITION_B@@ /${fitimage_name}; then
+						echo "Found valid slot B, ${BOOT_B_LEFT} attempts remaining"
+						setexpr BOOT_B_LEFT ${BOOT_B_LEFT} - 1
+						setenv fit_image_partition @@FIT_IMAGE_PARTITION_B@@
+						setenv rootfs_partition @@ROOTFS_PARTITION_B@@
+						setenv rauc_slot @@RAUC_SLOT_B@@
+					fi
+				fi
+			fi
+		done
+		if test "x${fit_image_partition}" != "x"; then
+			saveenv
+		else
+			echo "No valid slot found, resetting tries to 3"
+			setenv BOOT_A_LEFT 3
+			setenv BOOT_B_LEFT 3
+			saveenv
+			reset
 		fi
+
+		ext4load ${devtype} ${devnum}:${fit_image_partition} @@FIT_IMAGE_LOAD_ADDRESS@@ ${fitimage_name};
+		imxtract @@FIT_IMAGE_LOAD_ADDRESS@@ @@FIT_DTB_IMAGE_NAME@@ @@DEVICETREE_ADDRESS@@
+		fdt addr @@DEVICETREE_ADDRESS@@
+		fdt get value bootargs /chosen bootargs
+		setenv bootargs $bootargs @@KERNEL_COMMAND_APPEND@@ @@KERNEL_ROOT_SD@@
+		fdt set /chosen bootargs "${bootargs}"
+		bootm @@FIT_IMAGE_LOAD_ADDRESS@@ - @@DEVICETREE_ADDRESS@@
 
 		echo "Checking for /${kernel_name}"
 		if test -e ${devtype} ${devnum}:${distro_bootpart} /${kernel_name}; then

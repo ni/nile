@@ -14,5 +14,6 @@ IMAGE_INSTALL = "\
 
 IMAGE_INSTALL:append:kula = " host-arm-net-mod"
 IMAGE_INSTALL:append:kula = " libubootenv-bin"
+IMAGE_INSTALL:append:kula = " rauc"
 
 inherit core-image
