@@ -15,6 +15,11 @@ IMAGE_FSTYPES = "ext4"
 # image, which can cause the image to no longer fit in the partition.
 IMAGE_OVERHEAD_FACTOR = "1.0"
 IMAGE_ROOTFS_EXTRA_SPACE = "0"
+# Setting IMAGE_ROOTFS_SIZE ensures the filesystem size on the kernel partitions will be stable
+# and track the underlying partition size, even after installing an update bundle. Without this,
+# the filesystem size will change each time an update bundle is installed and will be smaller
+# than the actual partition size.
+IMAGE_ROOTFS_SIZE = "${KERNEL_PARTITION_SIZE}"
 # This variable ensures the build will fail if the image size exceeds the partition size for any reason.
 IMAGE_ROOTFS_MAXSIZE = "${KERNEL_PARTITION_SIZE}"
 

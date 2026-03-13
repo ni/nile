@@ -1,16 +1,8 @@
 IMAGE_INSTALL:append = " fit-image-stager"
 
-## Remove u-boot.bin as u-boot is already packaged into boot.bin.
-IMAGE_BOOT_FILES:remove = "u-boot.bin"
-# Remove additional copies of the devicetree as u-boot is already using another copy named system.dtb.
-IMAGE_BOOT_FILES:remove = "devicetree/*.dtb;devicetree/ devicetree/*.dtbo;devicetree/"
-IMAGE_BOOT_FILES:remove = "devicetree/cortexa72-linux.dtb"
-# Remove Image and system.dtb as we are now packaging them as a fitImage
-IMAGE_BOOT_FILES:remove = "system.dtb"
-IMAGE_BOOT_FILES:remove = "Image"
-# Remove the fitImage as we are no longer placing it on the bootloader partition,
-# but have instead moved it to A/B kernel partitions.
-IMAGE_BOOT_FILES:remove = "fitImage"
+# Only want boot.bin and boot.scr in the boot partition.
+# Kernel/devicetree/etc will be in separate A/B kernel partitions and nothing else is needed.
+IMAGE_BOOT_FILES = "boot.bin boot.scr"
 
 # RAUC requires a block-based image to build update bundles for use with slots of
 # type "raw" (which are required by the RAUC verity bundle format).

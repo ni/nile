@@ -25,7 +25,9 @@ do_bundle[depends] += "kernel-partition-image:do_image_complete"
 
 # Provide signing credentials (required)
 # For local development builds you can generate a key and certificate file pair,
-# uncomment these variables, and point them to your generated files.
+# uncomment these variables, and point them to your generated files. One way to
+# generate a key and certificate pair with a 90 day expiration is shown here:
+# openssl req -x509 -newkey rsa:4096 -nodes -keyout dev.key.pem -out dev.cert.pem -subj "/O=my-company/CN=my-cert-name" -days 90
 #RAUC_KEY_FILE = "${THISDIR}/files/dev.key.pem"
 #RAUC_CERT_FILE = "${THISDIR}/files/dev.cert.pem"
 # You will also need to provide a public certificate that can be used to validate
