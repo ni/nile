@@ -4,6 +4,8 @@
 #   FIT_IMAGE_PARTITION_B in kula.conf
 #   ROOTFS_PARTITION_A    in kula.conf
 #   ROOTFS_PARTITION_B    in kula.conf
+#   KERNEL_PARTITION_SIZE in kula.conf
+#   ROOTFS_PARTITION_SIZE in kula.conf
 # Note that while not directly tied to any of these partitions, the u-boot environment store
 # is configured to reside in unpartitioned space before the first partition. The u-boot
 # environment store is configured in a u-boot-xlnx bbappend and in /etc/fw_env.config.
