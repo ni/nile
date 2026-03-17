@@ -1,0 +1,66 @@
+From e7f769004db7ebda39854e4ed3050e3c4f3bdb93 Mon Sep 17 00:00:00 2001
+From: joshua Watt <JPEWhacker@gmail.com>
+Date: Thu, 2 May 2024 08:57:50 -0600
+Subject: [PATCH] classes/create-spdx-2.2: Fix SPDX dependencies for ABI Safe
+ recipes
+
+SPDX Documents can currently get into a state where they reference SPDX
+IDs that do not exist (locally). The reason for this is that some
+tasks/recipes are marked as ABI safe, and thus are excluded from
+taskhash. This means that when SPDX creates a document, it will refer to
+the SPDX ID in the dependency at the time when the document is created,
+but if the dependency changes and gets a new SPDX ID, the document will
+not rebuild to reference the new SPDX ID, causing it to be dangling.
+
+Fix this by using the new field in BB_TASKDEPDATA to skip dependencies
+that are not part of the taskhash calculation.
+
+Signed-off-by: Joshua Watt <JPEWhacker@gmail.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+---
+ meta/classes/create-spdx-2.2.bbclass | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/meta/classes/create-spdx-2.2.bbclass b/meta/classes/create-spdx-2.2.bbclass
+index aaa2e78fe2..7cdcc29d19 100644
+--- a/meta/classes/create-spdx-2.2.bbclass
++++ b/meta/classes/create-spdx-2.2.bbclass
+@@ -374,7 +374,13 @@ def collect_dep_recipes(d, doc, spdx_recipe):
+     with spdx_deps_file.open("r") as f:
+         deps = json.load(f)
+ 
+-    for dep_pn, dep_hashfn in deps:
++    for dep_pn, dep_hashfn, in_taskhash in deps:
++        # If this dependency is not calculated in the taskhash skip it.
++        # Otherwise, it can result in broken links since this task won't
++        # rebuild and see the new SPDX ID if the dependency changes
++        if not in_taskhash:
++            continue
++
+         dep_recipe_path = oe.sbom.doc_find_by_hashfn(deploy_dir_spdx, package_archs, "recipe-" + dep_pn, dep_hashfn)
+         if not dep_recipe_path:
+             bb.fatal("Cannot find any SPDX file for recipe %s, %s" % (dep_pn, dep_hashfn))
+@@ -495,7 +501,7 @@ def collect_direct_deps(d, dep_task):
+     for dep_name in this_dep[3]:
+         dep_data = taskdepdata[dep_name]
+         if dep_data[1] == dep_task and dep_data[0] != pn:
+-            deps.add((dep_data[0], dep_data[7]))
++            deps.add((dep_data[0], dep_data[7], dep_name in this_dep[8]))
+ 
+     return sorted(deps)
+ 
+@@ -738,9 +744,9 @@ def collect_package_providers(d):
+     providers = {}
+ 
+     deps = collect_direct_deps(d, "do_create_spdx")
+-    deps.append((d.getVar("PN"), d.getVar("BB_HASHFILENAME")))
++    deps.append((d.getVar("PN"), d.getVar("BB_HASHFILENAME"), True))
+ 
+-    for dep_pn, dep_hashfn in deps:
++    for dep_pn, dep_hashfn, _ in deps:
+         localdata = d
+         recipe_data = oe.packagedata.read_pkgdata(dep_pn, localdata)
+         if not recipe_data:
+-- 
+2.47.3
+
