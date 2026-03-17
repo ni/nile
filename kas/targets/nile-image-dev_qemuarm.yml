@@ -2,6 +2,7 @@ header:
   version: 19
   includes:
     - kas/includes/base-config.yml
+    - kas/includes/testimage.yml
     - kas/machines/qemuarm.yml
 
 target:
