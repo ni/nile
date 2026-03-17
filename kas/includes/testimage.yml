@@ -1,0 +1,24 @@
+header:
+  version: 19
+
+local_conf_header:
+  testimage: |
+    IMAGE_CLASSES += " testimage"
+  remove_unnecessary_tests: |
+    # don't do package manager tests
+    TEST_SUITES:remove = "dnf rpm opkg apt"
+    # don't do programming language build tests
+    TEST_SUITES:remove = "gcc buildcpio buildlzip buildgalculator go rust perl python gi"
+    # don't do graphical environment tests
+    TEST_SUITES:remove = "xorg weston"
+    # we don't use connman
+    TEST_SUITES:remove = "connman"
+    # we don't expect to build kernel modules on-target
+    TEST_SUITES:remove = "kernelmodule stap"
+  kvm: |
+    # don't rely on kvm; it doesn't work so well from within a container, and
+    # it's not applicable for when we're cross-architecture (ARM VM on x64) anyway
+    QEMU_USE_KVM = ""
+  slirp: |
+    # use user networking instead; this behaves better within a container
+    TEST_RUNQEMUPARAMS = "slirp"
