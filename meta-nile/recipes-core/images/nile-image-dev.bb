@@ -5,6 +5,7 @@ IMAGE_FEATURES += "splash ssh-server-openssh package-management debug-tweaks too
 IMAGE_INSTALL = "\
     packagegroup-core-boot \
     packagegroup-core-full-cmdline \
+    packagegroup-nile-ptests-core \
     ${CORE_IMAGE_EXTRA_INSTALL} \
     python3 \
     valgrind \
