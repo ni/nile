@@ -19,7 +19,7 @@ jobs:
       - name: Set variables for manual run
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          echo "BUILD_REF=${{  github.ref_name }}" >> $GITHUB_ENV
+          echo "BUILD_REF=${{ github.ref_name }}" >> $GITHUB_ENV
           echo "REPO_URL=${{ github.server_url }}/${{ github.repository }}.git" >> $GITHUB_ENV
       - name: Trigger Main
         uses: Azure/pipelines@v1.2
