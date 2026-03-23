@@ -1,0 +1,31 @@
+name: Trigger AzDO PR pipeline
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  trigger-azdo-tests:
+    runs-on: ubuntu-latest
+    environment: ni-dev
+    steps:
+      - name: Set variables for pull_request
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "BUILD_REF=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          echo "REPO_URL=${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name }}.git" >> $GITHUB_ENV
+      - name: Set variables for manual run
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "BUILD_REF=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "REPO_URL=${{ github.server_url }}/${{ github.repository }}.git" >> $GITHUB_ENV
+      - name: Trigger Main
+        uses: Azure/pipelines@v1.2
+        with:
+          azure-devops-project-url: "https://dev.azure.com/ni/DevCentral"
+          azure-pipeline-name: "ni-central-rtos-nile-github"
+          azure-devops-token: ${{ secrets.AZDO_PIPELINE_TRIGGERS }}
+          azure-pipeline-variables: >
+            {"BUILD_REF":"${{ env.BUILD_REF }}","REPO_URL":"${{ env.REPO_URL }}"}
