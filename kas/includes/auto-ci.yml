@@ -1,0 +1,13 @@
+# configuration to include on automated builds
+#
+# This file is not included by default; it's intended to be passed to
+# kas as additional configuration during CI/PR builds, eg:
+#     kas build kas/targets/<target>.yml:kas/includes/auto-ci.yml
+
+header:
+  version: 19
+
+local_conf_header:
+  # run tests automatically for any target that inherits from "testimage"
+  auto-testimage: |
+    TESTIMAGE_AUTO = "1"
