@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ni-dev
     steps:
-      - name: Set variables for pull_request
+      - name: Set variables for     pull_request
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           echo "BUILD_REF=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
