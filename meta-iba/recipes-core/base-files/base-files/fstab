@@ -1,0 +1,10 @@
+/dev/root            /                    auto       defaults              1  1
+proc                 /proc                proc       defaults              0  0
+devpts               /dev/pts             devpts     mode=0620,ptmxmode=0666,gid=5      0  0
+tmpfs                /run                 tmpfs      mode=0755,nodev,nosuid,strictatime 0  0
+tmpfs                /var/volatile        tmpfs      defaults              0  0
+
+# NOTE: Client teams might want to add the "sync" option for the /data mount, especially
+# if the use-case does not have any sort of 'shutdown' flow that would force a write flush.
+/dev/mmcblk0p7       /data                auto       defaults              0  0
+

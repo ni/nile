@@ -1,11 +1,12 @@
 # The partition layout defined in this file is tied to various references to these partitions.
 # These references include:
-#   FIT_IMAGE_PARTITION_A in kula.conf
-#   FIT_IMAGE_PARTITION_B in kula.conf
-#   ROOTFS_PARTITION_A    in kula.conf
-#   ROOTFS_PARTITION_B    in kula.conf
-#   KERNEL_PARTITION_SIZE in kula.conf
-#   ROOTFS_PARTITION_SIZE in kula.conf
+#   FIT_IMAGE_PARTITION_A        in kula.conf
+#   FIT_IMAGE_PARTITION_B        in kula.conf
+#   ROOTFS_PARTITION_A           in kula.conf
+#   ROOTFS_PARTITION_B           in kula.conf
+#   KERNEL_PARTITION_SIZE        in kula.conf
+#   ROOTFS_PARTITION_SIZE        in kula.conf
+#   /data partition device path  in fstab
 # Note that while not directly tied to any of these partitions, the u-boot environment store
 # is configured to reside in unpartitioned space before the first partition. The u-boot
 # environment store is configured in a u-boot-xlnx bbappend and in /etc/fw_env.config.
@@ -15,6 +16,6 @@ part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fix
 # Partition 4 is an extended partition, which is only used as a container for the remaining
 # partitions. It is automatically created when using more than 4 partitions on an MBR disk.
 # As a result, the following partitions will be numbered starting at 5.
-part  /      --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsA            --align 1024
-part  /      --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsB            --align 1024
-part  /data                                                                --size=150M        --fstype=ext4  --use-label  --label data               --align 1024
+part         --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsA            --align 1024
+part         --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsB            --align 1024
+part                                                                       --size=150M        --fstype=ext4  --use-label  --label data               --align 1024
