@@ -63,7 +63,7 @@ if [ "$CONTAINER_BASE" = "pyrex" ]; then
 
 	# build the build-nile image
 	docker build \
-		-f "${SCRIPT_ROOT}/build-nile.Dockerfile" \
+		-f "${SCRIPT_ROOT}/build-nile.${CONTAINER_BASE}.Dockerfile" \
 		-t "${IMAGE_NAME}:${short_hash}" \
 		--build-arg=PYREX_IMAGE=pyrex-base:${short_hash} \
 		"${SCRIPT_ROOT}"
@@ -78,9 +78,9 @@ elif [ "$CONTAINER_BASE" = "kas" ]; then
 
 	# create kas container
 	docker build \
-		-f "${SCRIPT_ROOT}/build-nile.Dockerfile" \
+		-f "${SCRIPT_ROOT}/build-nile.${CONTAINER_BASE}.Dockerfile" \
 		-t "${IMAGE_NAME}:${short_hash}" \
-		--build-arg=PYREX_IMAGE=${KAS_BASE}:${KAS_BASE_TAG} \
+		--build-arg=KAS_IMAGE=${KAS_BASE}:${KAS_BASE_TAG} \
 		"${SCRIPT_ROOT}"
 
 	# tag the image with the image version
