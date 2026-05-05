@@ -1,0 +1,35 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/meta-xilinx.yml
+    - kas/includes/meta-virtualization.yml
+    - kas/includes/meta-rauc.yml
+    - kas/includes/xilinx-device-common.yml
+
+machine: genesyszu-3eg
+
+repos:
+  meta-nile-test:
+    path: "meta-nile-test"
+    layers:
+      .:
+
+  meta-xilinx:
+    layers:
+      meta-xilinx-bsp:
+      meta-microblaze:
+      meta-xilinx-core:
+      meta-xilinx-standalone:
+      meta-xilinx-standalone-sdt:
+
+  meta-xilinx-tools:
+    layers:
+      .:
+
+  meta-amd-adaptive-socs:
+    layers:
+      meta-amd-adaptive-socs-core:
+
+  meta-openamp:
+    layers:
+      .:
