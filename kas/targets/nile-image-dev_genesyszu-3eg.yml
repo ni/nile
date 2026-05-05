@@ -1,0 +1,17 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/genesyszu-3eg.yml
+
+target:
+  - nile-image-dev
+
+artifacts:
+  "Image.bin": "tmp/deploy/images/genesyszu-3eg/Image-genesyszu-3eg.bin"
+  "boot.bin": "tmp/deploy/images/genesyszu-3eg/boot.bin"
+  "boot.scr": "tmp/deploy/images/genesyszu-3eg/boot.scr"
+  "nile-image-dev-genesyszu-3eg.rootfs.cpio.gz.u-boot": "tmp/deploy/images/genesyszu-3eg/nile-image-dev-genesyszu-3eg.rootfs.cpio.gz.u-boot"
+  "nile-image-dev-genesyszu-3eg.rootfs.tar.gz": "tmp/deploy/images/genesyszu-3eg/nile-image-dev-genesyszu-3eg.rootfs.tar.gz"
+  "nile-image-dev-genesyszu-3eg.rootfs.qemuboot.conf": "tmp/deploy/images/genesyszu-3eg/nile-image-dev-genesyszu-3eg.rootfs.qemuboot.conf"
+  "system.dtb": "tmp/deploy/images/genesyszu-3eg/system.dtb"
