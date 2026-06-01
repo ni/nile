@@ -1,0 +1,35 @@
+/ {
+	aliases {
+		serial0 = &serial0;
+		serial1 = &dcc;
+		serial2 = &serial1;
+		spi0 = &ospi;
+	};
+
+	memoryaxi_noc_0_ddr: memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x00000000 0x0 0x80000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		pcie_enet_mem: buffer@70000000 {
+			no-map;
+			reg = <0x00 0x70000000 0x00 0x800000>;
+		};
+	};
+
+
+};
+
+&fpga {
+	hostarmnet0: ethernet@70000000 {
+		compatible = "ni,host-arm-net";
+		reg = <0x00 0x70000000 0x00 0x100000>;
+
+		status = "okay";
+	};
+};
