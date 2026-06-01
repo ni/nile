@@ -33,3 +33,10 @@
 		status = "okay";
 	};
 };
+
+&cpm_pciea {
+    status = "disabled";
+};
+&cpm5_pcie {
+    status = "disabled";
+};
