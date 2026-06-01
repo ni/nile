@@ -1,0 +1,24 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/kula-vmk180.yml
+
+target:
+  - nile-image-dev
+
+artifacts:
+  "Image.bin": "tmp/deploy/images/kula-vmk180/Image-kula-vmk180.bin"
+  "boot.bin": "tmp/deploy/images/kula-vmk180/boot.bin"
+  "boot.scr": "tmp/deploy/images/kula-vmk180/boot.scr"
+  "nile-image-dev-kula-vmk180.rootfs.cpio.gz.u-boot": "tmp/deploy/images/kula-vmk180/nile-image-dev-kula-vmk180.rootfs.cpio.gz.u-boot"
+  "nile-image-dev-kula-vmk180.rootfs.tar.gz": "tmp/deploy/images/kula-vmk180/nile-image-dev-kula-vmk180.rootfs.tar.gz"
+  "nile-image-dev-kula-vmk180.rootfs.qemuboot.conf": "tmp/deploy/images/kula-vmk180/nile-image-dev-kula-vmk180.rootfs.qemuboot.conf"
+  "qemu/nile-image-dev-kula-vmk180.rootfs.wic.qemu-sd": "tmp/deploy/images/kula-vmk180/nile-image-dev-kula-vmk180.rootfs.wic.qemu-sd"
+  "qemu/plm-kula-vmk180.elf": "tmp/deploy/images/kula-vmk180/plm-kula-vmk180.elf"
+  "qemu/cortexa72-linux.dtb": "tmp/deploy/images/kula-vmk180/devicetree/cortexa72-linux.dtb"
+  "qemu/BOOT-kula-vmk180_bh.bin": "tmp/deploy/images/kula-vmk180/BOOT-kula-vmk180_bh.bin"
+  "qemu/BOOT-kula-vmk180.bin": "tmp/deploy/images/kula-vmk180/BOOT-kula-vmk180.bin"
+  "qemu/CDO": "tmp/deploy/images/kula-vmk180/CDO"
+  "qemu/qemu-hw-devicetrees": "tmp/deploy/images/kula-vmk180/qemu-hw-devicetrees"
+  "qemu/bin": "tmp/work/x86_64-linux/qemu-helper-native/1.0/recipe-sysroot-native/usr/bin"
