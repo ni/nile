@@ -14,6 +14,7 @@ artifacts:
   "nile-image-dev-kula.rootfs.cpio.gz.u-boot": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.cpio.gz.u-boot"
   "nile-image-dev-kula.rootfs.tar.gz": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.tar.gz"
   "nile-image-dev-kula.rootfs.qemuboot.conf": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.qemuboot.conf"
+  "sdcard/nile-image-dev-kula.rootfs.wic": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.wic"
   "qemu/nile-image-dev-kula.rootfs.wic.qemu-sd": "tmp/deploy/images/kula/nile-image-dev-kula.rootfs.wic.qemu-sd"
   "qemu/plm-kula.elf": "tmp/deploy/images/kula/plm-kula.elf"
   "qemu/cortexa72-linux.dtb": "tmp/deploy/images/kula/devicetree/cortexa72-linux.dtb"
