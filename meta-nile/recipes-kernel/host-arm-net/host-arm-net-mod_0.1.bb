@@ -7,6 +7,7 @@ inherit module
 
 SRC_URI = "file://Makefile \
            file://host-arm-net.c \
+           file://host-arm-net.conf \
           "
 
 S = "${WORKDIR}"
@@ -15,3 +16,10 @@ S = "${WORKDIR}"
 # "kernel-module-" prefix as required by the oe-core build environment.
 
 RPROVIDES:${PN} += "kernel-module-host-arm-net"
+
+do_install:append() {
+    install -d ${D}${sysconfdir}/modprobe.d
+    install -m 0644 ${WORKDIR}/host-arm-net.conf ${D}${sysconfdir}/modprobe.d/host-arm-net.conf
+}
+
+FILES:${PN} += "${sysconfdir}/modprobe.d/host-arm-net.conf"
