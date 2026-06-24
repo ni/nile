@@ -15,4 +15,5 @@ RDEPENDS:${PN} += "ptest-runner "
 
 RDEPENDS:${PN} += "\
     xz-ptest \
+    nile-selftest-ptest \
     "
