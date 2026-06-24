@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# This should probably be a more rigorous check but this test target
+# is intended to be rather lightweight, so there's not much in the way
+# of hardware capability that we can really check for.
+if [ ! -f /sys/class/fpga_manager/fpga0/name ]; then
+	echo "FAIL: no fpga device found"
+	exit 1
+else
+	echo "PASS: fpga device is present"
+	exit 0
+fi
