@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# ptest wrapper to run nile-selftest as part of ptest runs
+
+if [ ! -f /usr/bin/nile-selftest ]; then
+	echo "nile-selftest not present, cannot run"
+	echo "FAIL: nile-selftest"
+	exit 1
+fi
+
+/usr/bin/nile-selftest
+RET=$?
+
+if [ $RET -eq 0 ]; then
+	echo "PASS: nile-selftest"
+	exit 0
+else
+	echo "nile-selftest returned non-zero exit code ${RET}"
+	echo "FAIL: nile-selftest"
+	exit $RET
+fi
