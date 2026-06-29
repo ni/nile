@@ -168,6 +168,11 @@ target:
   - xyzzy-firmware
 ```
 
+### Self Test
+
+Client teams should implement a self test for their products. See
+[self-test.md](self-test.md).
+
 ## Build Pipeline
 
 _TODO. Since this is largely internal-focused should this link to a document
