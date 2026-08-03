@@ -1,0 +1,50 @@
+From 50aa3cd0459876dfb5d13772ba1ccee23df63605 Mon Sep 17 00:00:00 2001
+From: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+Date: Tue, 3 Nov 2020 17:13:18 -0600
+Subject: [PATCH] package_manager.py: Change deploy_dir when
+ BUILD_IMAGES_FROM_FEEDS is enabled
+
+When BUILD_IMAGES_FROM_FEEDS is enabled, rootfs' package_write_ipk
+dependencies are deleted. Creating a separate package directory with
+only the package_write_ipk dependencies does not work in this case.
+Revert to the old behavior where deploy_dir is the same as
+DEPLOY_DIR_IPK.
+
+Signed-off-by: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+
+Rebased-by: Alex Stewart <alex.stewart@ni.com>
+* Moved original patch changes from package_manager.py to their
+  equivalent location in the newer package_manager/ipk module.
+---
+ meta/lib/oe/package_manager/ipk/__init__.py | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/meta/lib/oe/package_manager/ipk/__init__.py b/meta/lib/oe/package_manager/ipk/__init__.py
+index e6f9c08e2b..29a4bf08cd 100644
+--- a/meta/lib/oe/package_manager/ipk/__init__.py
++++ b/meta/lib/oe/package_manager/ipk/__init__.py
+@@ -167,12 +167,21 @@ class OpkgPM(OpkgDpkgPM):
+         self.pkg_archs = archs
+         self.task_name = task_name
+ 
++
++        if d.getVar('BUILD_IMAGES_FROM_FEEDS'):
++            self.deploy_dir = self.d.getVar("DEPLOY_DIR_IPK")
++        else:
++            self.deploy_dir = oe.path.join(self.d.getVar('WORKDIR'), ipk_repo_workdir)
+         self.deploy_dir = oe.path.join(self.d.getVar('WORKDIR'), ipk_repo_workdir)
+         self.deploy_lock_file = os.path.join(self.deploy_dir, "deploy.lock")
+         self.opkg_cmd = bb.utils.which(os.getenv('PATH'), "opkg")
+         self.opkg_args = "--volatile-cache -f %s -t %s -o %s " % (self.config_file, self.d.expand('${T}/ipktemp/') ,target_rootfs)
+         self.opkg_args += self.d.getVar("OPKG_ARGS")
+ 
++        if not d.getVar('BUILD_IMAGES_FROM_FEEDS'):
++            if prepare_index:
++                create_packages_dir(self.d, self.deploy_dir, d.getVar("DEPLOY_DIR_IPK"), "package_write_ipk", filterbydependencies)
++
+         if prepare_index:
+             create_packages_dir(self.d, self.deploy_dir, d.getVar("DEPLOY_DIR_IPK"), "package_write_ipk", filterbydependencies)
+ 
+-- 
+2.47.0.vfs.0.3
+

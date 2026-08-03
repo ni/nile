@@ -1,0 +1,21 @@
+header:
+  version: 19
+
+local_conf_header:
+  image-from-feeds: |
+    BUILD_IMAGES_FROM_FEEDS = "1"
+    # Base URI for feed content consumed during image assembly.
+    # Set this to an external feed (http:// or file://) when consuming IPKs built elsewhere.
+    NILE_FEEDS_URI ?= "file://${DEPLOY_DIR_IPK}"
+
+    # Feed URI consumed by opkg during do_rootfs when BUILD_IMAGES_FROM_FEEDS=1.
+    # Expected format for IPK_FEED_URIS entries is <feed-name>##<feed-uri>.
+    IPK_FEED_URIS += " \
+      NILE-all##${NILE_FEEDS_URI}/all \
+      NILE-${MACHINE}##${NILE_FEEDS_URI}/${MACHINE} \
+      NILE-${TUNE_PKGARCH}##${NILE_FEEDS_URI}/${TUNE_PKGARCH} \
+    "
+
+    # Populate runtime feed config generation for package-management images.
+    PACKAGE_FEED_URIS ?= "${NILE_FEEDS_URI}"
+    PACKAGE_FEED_ARCHS ?= "all ${MACHINE} ${TUNE_PKGARCH}"

@@ -1,0 +1,106 @@
+From 204d67532c69dca446165acd1d8fd81c1931a77b Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Wed, 11 Aug 2021 11:42:37 -0500
+Subject: [PATCH] package_manager.py: Allow post-install failures when
+ BUILD_IMAGES_FROM_FEEDS is enabled.
+
+When building an image from feeds, rootfs' package_write_ipk
+dependencies are ignored. This prevents tools required to run the
+post-install scripts from being installed to the native rootfs.
+Allow post-install failures when this happens, the scripts will
+be run on first boot instead.
+
+Signed-off-by: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Moved original patch changes from package_manager.py to their
+equivalent location in the newer package_manager/* modules.
+
+Rebased-by: Alex Stewart <alex.stewart@ni.com>
+
+Rebased for kirkstone.
+
+Rebased-by: Alex Stewart <alex.stewart@ni.com>
+---
+ meta/lib/oe/package_manager/__init__.py     | 16 +++++++++++++---
+ meta/lib/oe/package_manager/deb/__init__.py |  2 +-
+ meta/lib/oe/package_manager/ipk/__init__.py |  2 +-
+ meta/lib/oe/package_manager/rpm/__init__.py |  2 +-
+ 4 files changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/meta/lib/oe/package_manager/__init__.py b/meta/lib/oe/package_manager/__init__.py
+index 6774cdb794..69a2f3dd04 100644
+--- a/meta/lib/oe/package_manager/__init__.py
++++ b/meta/lib/oe/package_manager/__init__.py
+@@ -90,8 +90,15 @@ def opkg_query(cmd_output):
+ 
+     return output
+ 
+-def failed_postinsts_abort(pkgs, log_path):
+-    bb.fatal("""Postinstall scriptlets of %s have failed. If the intention is to defer them to first boot,
++def failed_postinsts_handler(d, pkgs, log_path):
++    # Abort on post-installation failures only if BUILD_IMAGES_FROM_FEEDS
++    # is not enabled. Post-installation failures are expected in cases
++    # where utilities required to run post-install scripts do not get
++    # installed to the native rootfs because package_write_ipk
++    # dependencies are nulled when building images from feed. These
++    # scripts will be run on first boot.
++    if not d.getVar('BUILD_IMAGES_FROM_FEEDS'):
++        bb.fatal("""Postinstall scriptlets of %s have failed. If the intention is to defer them to first boot,
+ then please place them into pkg_postinst_ontarget:${PN} ().
+ Deferring to first boot via 'exit 1' is no longer supported.
+ Details of the failure are in %s.""" %(pkgs, log_path))
+@@ -259,7 +266,10 @@ class PackageManager(object, metaclass=ABCMeta):
+                                 % (script, self.d.getVar('T'), self.d.getVar('BB_CURRENTTASK')))
+                         self._postpone_to_first_boot(script_full)
+                     else:
+-                        bb.fatal("The postinstall intercept hook '%s' failed, details in %s/log.do_%s" % (script, self.d.getVar('T'), self.d.getVar('BB_CURRENTTASK')))
++                        if not self.d.getVar('BUILD_IMAGES_FROM_FEEDS'):
++                            bb.fatal("The postinstall intercept hook '%s' failed, details in %s/log.do_%s" % (script, self.d.getVar('T'), self.d.getVar('BB_CURRENTTASK')))
++                        else:
++                            bb.note("The postinstall intercept hook '%s' failed, details in %s/log.do_%s" % (script, self.d.getVar('T'), self.d.getVar('BB_CURRENTTASK')))
+ 
+     @abstractmethod
+     def update(self):
+diff --git a/meta/lib/oe/package_manager/deb/__init__.py b/meta/lib/oe/package_manager/deb/__init__.py
+index 0c23c884c1..0b70e0ac46 100644
+--- a/meta/lib/oe/package_manager/deb/__init__.py
++++ b/meta/lib/oe/package_manager/deb/__init__.py
+@@ -274,7 +274,7 @@ class DpkgPM(OpkgDpkgPM):
+                         bb.warn("%s for package %s failed with %d:\n%s" %
+                                 (control_script.name, pkg_name, e.returncode,
+                                     e.output.decode("utf-8")))
+-                        failed_postinsts_abort([pkg_name], self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
++                        failed_postinsts_handler(self.d, [pkg_name], self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
+ 
+     def update(self):
+         os.environ['APT_CONFIG'] = self.apt_conf_file
+diff --git a/meta/lib/oe/package_manager/ipk/__init__.py b/meta/lib/oe/package_manager/ipk/__init__.py
+index 29a4bf08cd..ec0cfea147 100644
+--- a/meta/lib/oe/package_manager/ipk/__init__.py
++++ b/meta/lib/oe/package_manager/ipk/__init__.py
+@@ -382,7 +382,7 @@ class OpkgPM(OpkgDpkgPM):
+                     bb.warn(line)
+                     failed_pkgs.append(line.split(".")[0])
+             if failed_pkgs:
+-                failed_postinsts_abort(failed_pkgs, self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
++                failed_postinsts_handler(self.d, failed_pkgs, self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
+         except subprocess.CalledProcessError as e:
+             (bb.fatal, bb.warn)[attempt_only]("Unable to install packages. "
+                                               "Command '%s' returned %d:\n%s" %
+diff --git a/meta/lib/oe/package_manager/rpm/__init__.py b/meta/lib/oe/package_manager/rpm/__init__.py
+index f40c880af4..54cbc37bbb 100644
+--- a/meta/lib/oe/package_manager/rpm/__init__.py
++++ b/meta/lib/oe/package_manager/rpm/__init__.py
+@@ -215,7 +215,7 @@ class RpmPM(PackageManager):
+                 failed_scriptlets_pkgnames[line.split()[-1]] = True
+ 
+         if len(failed_scriptlets_pkgnames) > 0:
+-            failed_postinsts_abort(list(failed_scriptlets_pkgnames.keys()), self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
++            failed_postinsts_handler(self.d, list(failed_scriptlets_pkgnames.keys()), self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
+ 
+     def remove(self, pkgs, with_dependencies = True):
+         if not pkgs:
+-- 
+2.47.0.vfs.0.3
+
