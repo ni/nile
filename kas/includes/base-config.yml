@@ -51,6 +51,15 @@ repos:
       fix-cannot-find-any-spdx-file-on-version-changes-between-builds:
         repo: meta-nile
         path: "../kas/patches/oe-core/0001-classes-create-spdx-2.2-Fix-SPDX-dependencies-for-AB.patch"
+      build-images-from-feeds-deploy-dir:
+        repo: meta-nile
+        path: "../kas/patches/oe-core/0002-package_manager-Change-deploy_dir-when-BUILD_IMAGES_FROM_FEEDS-is-enabled.patch"
+      build-images-from-feeds-allow-postinst-failures:
+        repo: meta-nile
+        path: "../kas/patches/oe-core/0003-package_manager-Allow-post-install-failures-when-BUILD_IMAGES_FROM_FEEDS.patch"
+      package-install-nodeps:
+        repo: meta-nile
+        path: "../kas/patches/oe-core/0004-PACKAGE_INSTALL_NODEPS-add.patch"
 
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded.git"

@@ -1,0 +1,104 @@
+From 1cc363ed4c57ca76f6886e436262f822e95e50bb Mon Sep 17 00:00:00 2001
+From: Richard Tollerton <rich.tollerton@ni.com>
+Date: Fri, 11 Sep 2015 23:39:39 -0500
+Subject: [PATCH] PACKAGE_INSTALL_NODEPS/IMAGE_INSTALL_NODEPS: add
+
+PACKAGE_INSTALL (via IMAGE_INSTALL) is the normative way of adding
+packages to images. However, it is not generally compatible with
+BUILD_IMAGES_FROM_FEEDS, because RDEPENDS+="${PACKAGE_INSTALL}" in
+image.bbclass; this makes it impossible to add packages to an image that
+only exist in IPK form, not recipe form.
+
+To ameliorate this situation, add PACKAGE_INSTALL_NODEPS and expose it
+via IMAGE_INSTALL_NODEPS so image recipes can append feed-only packages
+without introducing build-time dependency edges.
+
+Reviewed-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Reviewed-by: Haris Okanovic <haris.okanovic@ni.com>
+Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
+Natinst-Reviewboard-ID: 110700
+
+Rebased for OE-core scarthgap baseline.
+---
+ meta/classes-recipe/image.bbclass    | 5 +++++
+ meta/classes/multilib.bbclass        | 1 +
+ meta/conf/documentation.conf         | 3 ++-
+ meta/lib/oe/buildhistory_analysis.py | 2 +-
+ meta/lib/oe/manifest.py              | 1 +
+ 5 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/meta/classes-recipe/image.bbclass b/meta/classes-recipe/image.bbclass
+--- a/meta/classes-recipe/image.bbclass
++++ b/meta/classes-recipe/image.bbclass
+@@ -87,6 +87,9 @@ PACKAGE_INSTALL_ATTEMPTONLY ?= "${FEATURE_INSTALL_OPTIONAL}"
+ 
+ IMGDEPLOYDIR = "${WORKDIR}/deploy-${PN}-image-complete"
+ 
++IMAGE_INSTALL_NODEPS ?= ""
++IMAGE_INSTALL_NODEPS[type] = "list"
++export PACKAGE_INSTALL_NODEPS ?= "${IMAGE_INSTALL_NODEPS}"
+ IMGMANIFESTDIR = "${WORKDIR}/image-task-manifest"
+ 
+ IMAGE_OUTPUT_MANIFEST_DIR = "${WORKDIR}/deploy-image-output-manifest"
+@@ -254,6 +257,7 @@ fakeroot python do_rootfs () {
+     # may have occurred.
+     pn = d.getVar('PN')
+     oe.packagedata.runtime_mapping_rename("PACKAGE_INSTALL", pn, d)
++    oe.packagedata.runtime_mapping_rename("PACKAGE_INSTALL_NODEPS", pn, d)
+     oe.packagedata.runtime_mapping_rename("PACKAGE_INSTALL_ATTEMPTONLY", pn, d)
+     oe.packagedata.runtime_mapping_rename("BAD_RECOMMENDATIONS", pn, d)
+ 
+diff --git a/meta/classes/multilib.bbclass b/meta/classes/multilib.bbclass
+--- a/meta/classes/multilib.bbclass
++++ b/meta/classes/multilib.bbclass
+@@ -114,6 +114,7 @@ python __anonymous () {
+         clsextend = oe.classextend.ClassExtender(variant, d)
+ 
+         clsextend.map_depends_variable("PACKAGE_INSTALL")
++        clsextend.map_depends_variable("PACKAGE_INSTALL_NODEPS")
+         clsextend.map_depends_variable("LINGUAS_INSTALL")
+         clsextend.map_depends_variable("RDEPENDS")
+         pinstall = d.getVar("LINGUAS_INSTALL") + " " + d.getVar("PACKAGE_INSTALL")
+diff --git a/meta/conf/documentation.conf b/meta/conf/documentation.conf
+--- a/meta/conf/documentation.conf
++++ b/meta/conf/documentation.conf
+@@ -216,6 +216,7 @@ IMAGE_FSTYPES[doc] = "Formats of root filesystem images that you want to have cr
+ IMAGE_FSTYPES_DEBUGFS[doc] = "Formats of the debug root filesystem images that you want to have created."
+ IMAGE_GEN_DEBUGFS[doc] = "When set to '1', generate a companion debug object/source filesystem image."
+ IMAGE_INSTALL[doc] = "Specifies the packages to install into an image. Image recipes set IMAGE_INSTALL to specify the packages to install into an image through image.bbclass."
++IMAGE_INSTALL_NODEPS[doc] = "Packages to be blindly installed into an image by the package manager, without attempting to build or depend on this. Useful in conjunction with BUILD_IMAGES_FROM_FEEDS."
+ IMAGE_LINGUAS[doc] = "Specifies the list of locales to install into the image during the root filesystem construction process."
+ IMAGE_NAME[doc] = "The name of the output image files minus the extension."
+ IMAGE_OVERHEAD_FACTOR[doc] = "Defines a multiplier that the build system applies to the initial image size for cases when the multiplier times the returned disk usage value for the image is greater than the sum of IMAGE_ROOTFS_SIZE and IMAGE_ROOTFS_EXTRA_SPACE."
+@@ -318,5 +319,6 @@ PACKAGE_EXTRA_ARCHS[doc] = "Specifies the list of architectures compatible with
+ PACKAGE_INSTALL[doc] = "List of the packages to be installed into the image. The variable is generally not user-defined and uses IMAGE_INSTALL as part of the list."
+ PACKAGE_INSTALL_ATTEMPTONLY[doc] = "List of packages attempted to be installed. If a listed package fails to install, the build system does not generate an error. This variable is generally not user-defined."
++PACKAGE_INSTALL_NODEPS[doc] = "List of packages to be blindly installed into the image through the package manager. The variable is generally not user-defined and uses IMAGE_INSTALL_NODEPS as part of the list."
+ PACKAGE_SNAP_LIB_SYMLINKS[doc] = "Rename library files based on their SONAME to avoid an extra layer of indirection through a symlink. Only suitable for a read-only rootfs where libraries are not upgraded in place."
+ PACKAGECONFIG[doc] = "This variable provides a means of enabling or disabling features of a recipe on a per-recipe basis."
+ PACKAGES[doc] = "The list of packages to be created from the recipe."
+diff --git a/meta/lib/oe/buildhistory_analysis.py b/meta/lib/oe/buildhistory_analysis.py
+--- a/meta/lib/oe/buildhistory_analysis.py
++++ b/meta/lib/oe/buildhistory_analysis.py
+@@ -23,7 +23,7 @@ import bb.tinfoil
+ 
+ 
+ # How to display fields
+-list_fields = ['DEPENDS', 'RPROVIDES', 'RDEPENDS', 'RRECOMMENDS', 'RSUGGESTS', 'RREPLACES', 'RCONFLICTS', 'FILES', 'FILELIST', 'USER_CLASSES', 'IMAGE_CLASSES', 'IMAGE_FEATURES', 'IMAGE_LINGUAS', 'IMAGE_INSTALL', 'BAD_RECOMMENDATIONS', 'PACKAGE_EXCLUDE']
++list_fields = ['DEPENDS', 'RPROVIDES', 'RDEPENDS', 'RRECOMMENDS', 'RSUGGESTS', 'RREPLACES', 'RCONFLICTS', 'FILES', 'FILELIST', 'USER_CLASSES', 'IMAGE_CLASSES', 'IMAGE_FEATURES', 'IMAGE_LINGUAS', 'IMAGE_INSTALL', 'BAD_RECOMMENDATIONS', 'PACKAGE_EXCLUDE', 'IMAGE_INSTALL_NODEPS']
+ list_order_fields = ['PACKAGES']
+ defaultval_map = {'PKG': 'PKG', 'PKGE': 'PE', 'PKGV': 'PV', 'PKGR': 'PR'}
+ numeric_fields = ['PKGSIZE', 'IMAGESIZE']
+diff --git a/meta/lib/oe/manifest.py b/meta/lib/oe/manifest.py
+--- a/meta/lib/oe/manifest.py
++++ b/meta/lib/oe/manifest.py
+@@ -26,6 +26,7 @@ class Manifest(object, metaclass=ABCMeta):
+     var_maps = {
+         MANIFEST_TYPE_IMAGE: {
+             "PACKAGE_INSTALL": PKG_TYPE_MUST_INSTALL,
++            "PACKAGE_INSTALL_NODEPS": PKG_TYPE_MUST_INSTALL,
+             "PACKAGE_INSTALL_ATTEMPTONLY": PKG_TYPE_ATTEMPT_ONLY,
+             "LINGUAS_INSTALL": PKG_TYPE_LANGUAGE
+         },
+-- 
+2.47.0.vfs.0.3
