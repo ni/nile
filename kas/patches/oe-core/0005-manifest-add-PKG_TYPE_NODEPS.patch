@@ -1,0 +1,74 @@
+From a86f785057be12b75302117352defa77f8cbf022 Mon Sep 17 00:00:00 2001
+From: Bill Pittman <bill.pittman@ni.com>
+Date: Fri, 22 Apr 2022 14:21:15 -0500
+Subject: [PATCH] manifest.py: Add new nodeps install type
+
+Create new package type PKG_TYPE_NODEPS to manage the order that packages
+with no bitbake recipes get installed.  The PKG_TYPE_NODEPS packages are
+installed last.
+
+Signed-off-by: Bill Pittman <bill.pittman@ni.com>
+
+Ported to scarthgap baseline (6988157ad983978ffd6b12bcefedd4deaffdbbd1)
+applied after 0004-PACKAGE_INSTALL_NODEPS-add.patch.
+---
+ meta/lib/oe/manifest.py | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/meta/lib/oe/manifest.py b/meta/lib/oe/manifest.py
+index 61f18adc4a..7d1229b803 100644
+--- a/meta/lib/oe/manifest.py
++++ b/meta/lib/oe/manifest.py
+@@ -18,6 +18,7 @@ class Manifest(object, metaclass=ABCMeta):
+     PKG_TYPE_MULTILIB = "mlp"
+     PKG_TYPE_LANGUAGE = "lgp"
+     PKG_TYPE_ATTEMPT_ONLY = "aop"
++    PKG_TYPE_NODEPS = "ndp"
+ 
+     MANIFEST_TYPE_IMAGE = "image"
+     MANIFEST_TYPE_SDK_HOST = "sdk_host"
+@@ -26,6 +27,7 @@ class Manifest(object, metaclass=ABCMeta):
+     var_maps = {
+         MANIFEST_TYPE_IMAGE: {
+             "PACKAGE_INSTALL": PKG_TYPE_MUST_INSTALL,
++            "PACKAGE_INSTALL_NODEPS": PKG_TYPE_NODEPS,
+             "PACKAGE_INSTALL_ATTEMPTONLY": PKG_TYPE_ATTEMPT_ONLY,
+             "LINGUAS_INSTALL": PKG_TYPE_LANGUAGE
+         },
+@@ -43,7 +45,8 @@ class Manifest(object, metaclass=ABCMeta):
+         PKG_TYPE_LANGUAGE,
+         PKG_TYPE_MUST_INSTALL,
+         PKG_TYPE_ATTEMPT_ONLY,
+-        PKG_TYPE_MULTILIB
++        PKG_TYPE_MULTILIB,
++        PKG_TYPE_NODEPS
+     ]
+ 
+     initial_manifest_file_header = \
+@@ -56,7 +59,8 @@ class Manifest(object, metaclass=ABCMeta):
+         "#      'mip' = must install package\n" \
+         "#      'aop' = attempt only package\n" \
+         "#      'mlp' = multilib package\n" \
+-        "#      'lgp' = language package\n\n"
++        "#      'lgp' = language package\n" \
++        "#      'ndp' = external packages\n\n"
+ 
+     def __init__(self, d, manifest_dir=None, manifest_type=MANIFEST_TYPE_IMAGE):
+         self.d = d
+@@ -152,11 +156,12 @@ class Manifest(object, metaclass=ABCMeta):
+         with open(self.initial_manifest) as manifest:
+             for line in manifest.read().split('\n'):
+                 comment = re.match("^#.*", line)
+-                pattern = "^(%s|%s|%s|%s),(.*)$" % \
++                pattern = "^(%s|%s|%s|%s|%s),(.*)$" % \
+                           (self.PKG_TYPE_MUST_INSTALL,
+                            self.PKG_TYPE_ATTEMPT_ONLY,
+                            self.PKG_TYPE_MULTILIB,
+-                           self.PKG_TYPE_LANGUAGE)
++                           self.PKG_TYPE_LANGUAGE,
++                           self.PKG_TYPE_NODEPS)
+                 pkg = re.match(pattern, line)
+ 
+                 if comment is not None:
+-- 
+2.47.0.vfs.0.3

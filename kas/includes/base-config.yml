@@ -60,6 +60,9 @@ repos:
       package-install-nodeps:
         repo: meta-nile
         path: "../kas/patches/oe-core/0004-PACKAGE_INSTALL_NODEPS-add.patch"
+      manifest-pkg-type-nodeps:
+        repo: meta-nile
+        path: "../kas/patches/oe-core/0005-manifest-add-PKG_TYPE_NODEPS.patch"
 
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded.git"
