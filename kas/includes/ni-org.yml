@@ -11,3 +11,5 @@ local_conf_header:
   ni-local-mirror: |
     INHERIT += "own-mirrors"
     SOURCE_MIRROR_URL ?= "http://argohttp.natinst.com/RTOS/oe-source-mirror/"
+  ni-nile-feeds: |
+    NILE_FEEDS_URI = "http://nickdanger.natinst.com/feeds/${NILE_FEED_NAME}"
