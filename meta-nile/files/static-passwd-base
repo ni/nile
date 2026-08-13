@@ -1,0 +1,19 @@
+# Static user assignments from base-passwd
+root:x:0:
+daemon:x:1:
+bin:x:2:
+sys:x:3:
+sync:x:4:
+games:x:5:
+man:x:6:
+lp:x:7:
+mail:x:8:
+news:x:9:
+uucp:x:10:
+proxy:x:13:
+www-data:x:33:
+backup:x:34:
+list:x:38:
+irc:x:39:
+_apt:x:42:
+nobody:x:65534:
