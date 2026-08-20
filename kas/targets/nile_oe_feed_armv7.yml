@@ -1,0 +1,11 @@
+# Feed build kas configuration
+# See docs/feed_builds.md for more information
+
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/zynq-generic.yml
+
+target:
+  - avahi # internal NI client specifically needs avahi package to be published

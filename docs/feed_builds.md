@@ -15,5 +15,5 @@ KAS_CONFIG_DIR = $(NILE_ROOT)/kas
 KAS_CONFIG = $(KAS_CONFIG_DIR)/$(SUBCOMPONENT).yml
 ```
 
-So, for example, `kas/nile_oe_feed_arm64.yml` will be used for a subcomponent named
-`nile_oe_feed_arm64`.
+So, for example, `kas/targets/nile_oe_feed_arm64.yml` will be used for a subcomponent
+named `nile_oe_feed_arm64`.

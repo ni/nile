@@ -1,0 +1,11 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/meta-xilinx.yml
+
+machine: zynq-generic
+
+repos:
+  meta-xilinx:
+    layers:
+      meta-xilinx-core:
