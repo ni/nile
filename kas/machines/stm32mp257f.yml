@@ -1,0 +1,20 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/meta-st-stm32mp.yml
+
+local_conf_header:
+  stm32mp257f-sdcard-image: |
+    # Generate SD card image artifacts so the board can be provisioned without CubeProgrammer
+    WKS_IMAGE_FSTYPES += "wic wic.bz2 wic.bmap"
+    WKS_FILE += "${OPTEE_WIC_FILE}"
+  stm32mp257f-gpu-workaround: |
+    # Avoid OP-TEE panic triggered during etnaviv GPU init on STM32MP257F-EV1
+    UBOOT_EXTLINUX_KERNEL_ARGS:append = " modprobe.blacklist=etnaviv initcall_blacklist=etnaviv_init"
+
+machine: stm32mp25-eval
+
+repos:
+  meta-st-stm32mp:
+    layers:
+      .:
