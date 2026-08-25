@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-st-stm32mp:
+    url: "https://github.com/STMicroelectronics/meta-st-stm32mp.git"
+    path: "layers/meta-st-stm32mp"
+    branch: "scarthgap"

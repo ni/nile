@@ -1,0 +1,13 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/stm32mp257f.yml
+
+target:
+  - nile-image-dev
+
+artifacts:
+  "nile-image-dev-stm32mp25-eval.rootfs.wic": "tmp/deploy/images/stm32mp25-eval/nile-image-dev-stm32mp25-eval.rootfs.wic"
+  "nile-image-dev-stm32mp25-eval.rootfs.wic.bmap": "tmp/deploy/images/stm32mp25-eval/nile-image-dev-stm32mp25-eval.rootfs.wic.bmap"
+  "nile-image-dev-stm32mp25-eval.rootfs.wic.bz2": "tmp/deploy/images/stm32mp25-eval/nile-image-dev-stm32mp25-eval.rootfs.wic.bz2"
