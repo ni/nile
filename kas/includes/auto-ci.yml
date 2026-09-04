@@ -11,3 +11,10 @@ local_conf_header:
   # run tests automatically for any target that inherits from "testimage"
   auto-testimage: |
     TESTIMAGE_AUTO = "1"
+
+  # Farm pipeline builds sign the LCI update bundle with the production 'lci'
+  # key on linuxsigning (RFMI agents are authorized). Non-fatal here so a
+  # signing outage never red-walls PR validation; the official image pipeline
+  # sets LCI_SIGN_REQUIRED = "1" to require a signed bundle.
+  lci-signing: |
+    LCI_SIGN_METHOD = "linuxsigning"

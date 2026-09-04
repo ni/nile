@@ -1,0 +1,52 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/vb8034.yml
+    # PR 58 feed-consumption model (BUILD_IMAGES_FROM_FEEDS, IPK_FEED_URIS).
+    - kas/includes/image-from-feeds.yml
+
+local_conf_header:
+  disable-cve-check: |
+    INHERIT:remove = "cve-check"
+
+  # SPDX/SBOM generation can't resolve providers for packages installed purely
+  # from feeds (BUILD_IMAGES_FROM_FEEDS), e.g. avahi-locale-*. Disable it for
+  # this image; SBOM for the from-feeds path is a separate follow-up.
+  disable-spdx: |
+    INHERIT:remove = "create-spdx"
+
+  lci-feed: |
+    # The LCI IPKs from ni-central are hard-float, tagged "cortexa9hf-vfpv3".
+    # NILRT's "cortexa9-vfpv3" is soft-float ABI (different calling convention)
+    # and is NOT compatible, so only allowlist the hard-float arch. NILE's own
+    # tune is cortexa9t2hf-neon (also hard-float, ABI-compatible on the A9).
+    PACKAGE_EXTRA_ARCHS:append = " cortexa9hf-vfpv3"
+
+    # Two feeds only:
+    #  1. ni-lci (this block): self-contained -- ships the 3 LCI packages plus
+    #     their transitive NI deps (ni-avahi-client, libnitargetcfg, nirtcfg,
+    #     ni-openssl3-libs) via the feed working-set closure. Replaces the need
+    #     for the ni-linux-rt-main feed entirely.
+    #  2. NILE OE feed (NILE_FEEDS_URI, from image-from-feeds.yml): supplies the
+    #     OE base -- libavahi-client3, libavahi-common3, libc6, libgcc1,
+    #     libstdc++6, libatomic1.
+    # Flat feed: one Packages index under inline/. NILE_LCI_FEED_VER is the
+    # dev-build default; official builds inject the release-resolved version
+    # (see the port plan's "LCI feed version selection").
+    NILE_LCI_FEED_BASE ?= "http://argohttp.natinst.com/ni/linuxpkg/feeds/ipk/ni-l/ni-lci"
+    NILE_LCI_FEED_VER ?= "26.8.0/26.8.0.5-0+d5"
+    NILE_LCI_FEED_URI ?= "${NILE_LCI_FEED_BASE}/${NILE_LCI_FEED_VER}/inline"
+    IPK_FEED_URIS += " NILE-lci##${NILE_LCI_FEED_URI}"
+
+target:
+  - nile-image-lci
+
+artifacts:
+  # Legacy-compatible update contract artifacts (see the port plan).
+  "lci-kernel.itb": "tmp/deploy/images/vb8034/lci-kernel.itb"
+  "bootfs.ubifs": "tmp/deploy/images/vb8034/bootfs.ubifs"
+  "ni-vb80x4.dtb": "tmp/deploy/images/vb8034/ni-vb80x4.dtb"
+  "nile-image-lci-vb8034.rootfs.squashfs": "tmp/deploy/images/vb8034/nile-image-lci-vb8034.rootfs.squashfs"
+  "VB-8034.cfg": "tmp/deploy/images/vb8034/VB-8034.cfg"
+  "firmware.info": "tmp/deploy/images/vb8034/firmware.info"
