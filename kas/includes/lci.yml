@@ -1,0 +1,24 @@
+header:
+  version: 19
+  includes:
+    # Feed-consumption model (BUILD_IMAGES_FROM_FEEDS, IPK_FEED_URIS).
+    - kas/includes/image-from-feeds.yml
+
+local_conf_header:
+  # cve-check's image manifest maps each installed package back to its recipe,
+  # which packages installed purely from feeds don't have, so skip only the
+  # manifest. The per-recipe checks still run for everything built here.
+  cve-check-no-manifest: |
+    CVE_CHECK_CREATE_MANIFEST = "0"
+
+  # SPDX/SBOM generation can't resolve providers for packages installed purely
+  # from feeds (BUILD_IMAGES_FROM_FEEDS), e.g. avahi-locale-*. Disable it for
+  # these images; SBOM for the from-feeds path is a separate follow-up.
+  disable-spdx: |
+    INHERIT:remove = "create-spdx"
+
+  lci-feed: |
+    NILE_LCI_FEED_BASE ?= "http://argohttp.natinst.com/ni/linuxpkg/feeds/ipk/ni-l/ni-lci"
+    NILE_LCI_FEED_VER ?= "27.0.0/27.0.0.1-0+d1"
+    NILE_LCI_FEED_URI ?= "${NILE_LCI_FEED_BASE}/${NILE_LCI_FEED_VER}/inline"
+    IPK_FEED_URIS += " NILE-lci##${NILE_LCI_FEED_URI}"
