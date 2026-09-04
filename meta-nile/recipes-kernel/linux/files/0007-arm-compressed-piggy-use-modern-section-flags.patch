@@ -1,0 +1,26 @@
+From 7f8e9d0a1b2c3d4e5f60718293a4b5c6d7e8f9a0b Mon Sep 17 00:00:00 2001
+From: NI NILE <nile@ni.com>
+Date: Mon, 10 Aug 2026 20:20:00 +0000
+Subject: [PATCH] ARM: compressed: piggy: use modern section flags
+
+Modern binutils no longer accepts the legacy #alloc section flag syntax.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+
+Signed-off-by: NI NILE <nile@ni.com>
+---
+ arch/arm/boot/compressed/piggy.gzip.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/compressed/piggy.gzip.S b/arch/arm/boot/compressed/piggy.gzip.S
+index 59af932..55b5d15 100644
+--- a/arch/arm/boot/compressed/piggy.gzip.S
++++ b/arch/arm/boot/compressed/piggy.gzip.S
+@@ -1,4 +1,4 @@
+-	.section .piggydata,#alloc
++	.section .piggydata,"a",%progbits
+ 	.globl	input_data
+ input_data:
+ 	.incbin	"arch/arm/boot/compressed/piggy.gzip"
+-- 
+2.39.5
