@@ -1,0 +1,37 @@
+From 1df9dd2f41b36640c39ae969f3b6d51a58f05f1c Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Wed, 9 Sep 2026 00:00:00 +0000
+Subject: [PATCH 6/7] kernel: sched: build at -O1 under GCC 13
+
+GCC 13 miscompiles build_sched_domains() in kernel/sched.c at -O2: the
+initial `sd = NULL` does not reach the first build_sched_domain() call as
+the child argument, so sched_domain->child ends up holding a garbage value
+(observed 0x1). get_group() then dereferences it and oopses in
+_find_first_bit_le() during sched_init_smp(), killing init.
+Compile just this file at -O1 to avoid the faulty transformation.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ kernel/Makefile | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernel/Makefile b/kernel/Makefile
+index c961d3abfe4c..010a4282bc5a 100644
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -124,6 +124,10 @@ ifneq ($(CONFIG_SCHED_OMIT_FRAME_POINTER),y)
+ CFLAGS_sched.o := $(PROFILING) -fno-omit-frame-pointer
+ endif
+ 
++# GCC 13 miscompiles build_sched_domains() at -O2 (garbage sched_domain->child
++# -> oops in get_group/_find_first_bit_le during sched_init_smp). Build at -O1.
++CFLAGS_sched.o += -O1
++
+ $(obj)/configs.o: $(obj)/config_data.h
+ 
+ # config_data.h contains the same information as ikconfig.h but gzipped.
+-- 
+2.39.5
+
