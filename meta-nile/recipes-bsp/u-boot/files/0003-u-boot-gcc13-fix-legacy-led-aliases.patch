@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI <ni@example.com>
+Date: Mon, 10 Aug 2026 00:00:00 +0000
+Subject: [PATCH] u-boot: make legacy LED alias targets concrete
+
+GCC 13 rejects aliases whose targets are inline functions that do not have a
+concrete definition in the translation unit. Make the no-op LED targets
+ordinary functions so the legacy weak aliases remain valid.
+
+Upstream-Status: Inappropriate [legacy NI U-Boot compatibility]
+---
+ arch/arm/lib/board.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/lib/board.c b/arch/arm/lib/board.c
+index ecb6e13..8fb7e6b 100644
+--- a/arch/arm/lib/board.c
++++ b/arch/arm/lib/board.c
+@@ -83,24 +83,24 @@
+  ************************************************************************
+  * May be supplied by boards if desired
+  */
+-inline void __coloured_LED_init(void) {}
++void __coloured_LED_init(void) {}
+ void coloured_LED_init(void)
+ 	__attribute__((weak, alias("__coloured_LED_init")));
+-inline void __red_led_on(void) {}
++void __red_led_on(void) {}
+ void red_led_on(void) __attribute__((weak, alias("__red_led_on")));
+-inline void __red_led_off(void) {}
++void __red_led_off(void) {}
+ void red_led_off(void) __attribute__((weak, alias("__red_led_off")));
+-inline void __green_led_on(void) {}
++void __green_led_on(void) {}
+ void green_led_on(void) __attribute__((weak, alias("__green_led_on")));
+-inline void __green_led_off(void) {}
++void __green_led_off(void) {}
+ void green_led_off(void) __attribute__((weak, alias("__green_led_off")));
+-inline void __yellow_led_on(void) {}
++void __yellow_led_on(void) {}
+ void yellow_led_on(void) __attribute__((weak, alias("__yellow_led_on")));
+-inline void __yellow_led_off(void) {}
++void __yellow_led_off(void) {}
+ void yellow_led_off(void) __attribute__((weak, alias("__yellow_led_off")));
+-inline void __blue_led_on(void) {}
++void __blue_led_on(void) {}
+ void blue_led_on(void) __attribute__((weak, alias("__blue_led_on")));
+-inline void __blue_led_off(void) {}
++void __blue_led_off(void) {}
+ void blue_led_off(void) __attribute__((weak, alias("__blue_led_off")));
+ 
+ /*

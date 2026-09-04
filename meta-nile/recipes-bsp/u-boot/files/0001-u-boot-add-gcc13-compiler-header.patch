@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI <ni@example.com>
+Date: Mon, 10 Aug 2026 00:00:00 +0000
+Subject: [PATCH] u-boot: add GCC 13 compiler header
+
+The legacy NI U-Boot tree dispatches compiler-specific definitions by GCC
+major version but only carries headers through GCC 4. Reuse the GCC 4
+definitions for the current GCC 13 toolchain.
+
+Upstream-Status: Inappropriate [legacy NI U-Boot compatibility]
+---
+ include/linux/compiler-gcc13.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 include/linux/compiler-gcc13.h
+
+diff --git a/include/linux/compiler-gcc13.h b/include/linux/compiler-gcc13.h
+new file mode 100644
+index 0000000..c8b94b2
+--- /dev/null
++++ b/include/linux/compiler-gcc13.h
+@@ -0,0 +1,14 @@
++#ifndef __LINUX_COMPILER_H
++#error "Please don't include <linux/compiler-gcc13.h> directly, include <linux/compiler.h> instead."
++#endif
++
++#define __used                  __attribute__((__used__))
++#define __must_check            __attribute__((warn_unused_result))
++#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
++#define __always_inline         inline __attribute__((always_inline))
++#define uninitialized_var(x) x = x
++#define __cold                  __attribute__((__cold__))
++#define unreachable() __builtin_unreachable()
++#define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
++#define __compiletime_warning(message) __attribute__((warning(message)))
++#define __compiletime_error(message) __attribute__((error(message)))
