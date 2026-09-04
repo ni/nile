@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI <ni@example.com>
+Date: Mon, 10 Aug 2026 00:00:00 +0000
+Subject: [PATCH] u-boot: restore GNU89 inline semantics for GCC 13
+
+This legacy tree uses extern inline definitions that rely on GNU89 inline
+semantics. GCC 13 otherwise emits multiple external definitions when the
+objects are combined.
+
+Upstream-Status: Inappropriate [legacy NI U-Boot compatibility]
+---
+ config.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/config.mk b/config.mk
+index 2fbb4e5..c0ff5c0 100644
+--- a/config.mk
++++ b/config.mk
+@@ -239,6 +239,8 @@
+ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
+ endif
+ 
++CFLAGS += -fgnu89-inline
++
+ # Xilinx, added to prevent unaligned accesses which started happening
+ # with GCC 4.5.2 tools
+ CFLAGS += $(call cc-option,-mno-unaligned-access)

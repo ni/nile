@@ -1,0 +1,29 @@
+From 6f7e8d9c0a1b2c3d4e5f60718293a4b5c6d7e8f9a Mon Sep 17 00:00:00 2001
+From: NI NILE <nile@ni.com>
+Date: Mon, 10 Aug 2026 20:10:00 +0000
+Subject: [PATCH] ARM: compressed: use modern section flags
+
+Modern binutils no longer accepts the legacy #alloc and #execinstr
+section flag syntax.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+
+Signed-off-by: NI NILE <nile@ni.com>
+---
+ arch/arm/boot/compressed/head.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+index 67a6e0d..d0e8b6a 100644
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -112,5 +112,5 @@ not_relocated: debug_reloc_end
+ 		.endm
+ 
+-		.section ".start", #alloc, #execinstr
++		.section ".start", "ax", %progbits
+ /*
+  * sort out different calling conventions
+  */
+-- 
+2.39.5

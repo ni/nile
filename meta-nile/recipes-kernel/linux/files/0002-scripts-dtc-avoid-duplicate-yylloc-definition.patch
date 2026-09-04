@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI <noreply@ni.com>
+Date: Mon, 10 Aug 2026 19:27:00 +0000
+Subject: [PATCH] scripts/dtc: avoid duplicate yylloc definition
+
+GCC 10 and later default to -fno-common.  The lexer and parser both
+define yylloc in this legacy DTC, so leave the definition in the parser
+and make the lexer declaration external.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+---
+ scripts/dtc/dtc-lexer.l             | 2 +-
+ scripts/dtc/dtc-lexer.lex.c_shipped | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/dtc/dtc-lexer.l b/scripts/dtc/dtc-lexer.l
+--- a/scripts/dtc/dtc-lexer.l
++++ b/scripts/dtc/dtc-lexer.l
+@@ -38,7 +38,7 @@ LINECOMMENT	"//".*\n
+ #include "srcpos.h"
+ #include "dtc-parser.tab.h"
+ 
+-YYLTYPE yylloc;
++extern YYLTYPE yylloc;
+ 
+ /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
+ #define	YY_USER_ACTION \
+
+diff --git a/scripts/dtc/dtc-lexer.lex.c_shipped b/scripts/dtc/dtc-lexer.lex.c_shipped
+--- a/scripts/dtc/dtc-lexer.lex.c_shipped
++++ b/scripts/dtc/dtc-lexer.lex.c_shipped
+@@ -565,7 +565,7 @@
+ #include "srcpos.h"
+ #include "dtc-parser.tab.h"
+ 
+-YYLTYPE yylloc;
++extern YYLTYPE yylloc;
+ 
+ /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
+
+-- 
+2.39.5

@@ -1,0 +1,30 @@
+From 5f6f1b1b6d9c7a3e2b1c0d9e8f7a6b5c4d3e2f1a Mon Sep 17 00:00:00 2001
+From: NI NILE <nile@ni.com>
+Date: Mon, 10 Aug 2026 20:00:00 +0000
+Subject: [PATCH] kernel: timeconst: use array length for definedness
+
+Perl 5.22 and newer reject defined(@array). Use scalar(@array) to
+check whether the canned value array contains entries.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+
+Signed-off-by: NI NILE <nile@ni.com>
+---
+ kernel/timeconst.pl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/timeconst.pl b/kernel/timeconst.pl
+index 83ffc41..8cc0b8f 100755
+--- a/kernel/timeconst.pl
++++ b/kernel/timeconst.pl
+@@ -370,7 +370,7 @@ if ($#ARGV == 1 && $ARGV[0] eq '--can') {
+ 	}
+ 
+ 	@val = @{$canned_values{$hz}};
+-	if (!defined(@val)) {
++	if (!scalar(@val)) {
+ 		@val = compute_values($hz);
+ 	}
+ 	output($hz, @val);
+-- 
+2.39.5

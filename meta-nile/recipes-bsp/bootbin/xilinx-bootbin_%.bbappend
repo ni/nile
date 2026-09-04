@@ -1,0 +1,1 @@
+do_configure:append:vb8034[depends] = " linux-xlnx:do_deploy"

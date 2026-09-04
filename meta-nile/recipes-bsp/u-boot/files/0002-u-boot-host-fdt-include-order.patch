@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI <ni@example.com>
+Date: Mon, 10 Aug 2026 00:00:00 +0000
+Subject: [PATCH] u-boot: use local FDT header from libfdt
+
+The old U-Boot host tools use angle-bracket includes for FDT headers. The
+native sysroot is searched before U-Boot's include directory, so host tools
+combine mismatched FDT headers. Use quoted includes for the local headers while
+leaving unrelated host headers, such as errno.h, on the native include path.
+
+Upstream-Status: Inappropriate [legacy NI U-Boot compatibility]
+---
+ include/image.h             | 4 ++--
+ include/libfdt.h            | 2 +-
+ lib/libfdt/libfdt_internal.h | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/image.h b/include/image.h
+index 76e7b51..c4ffeb6 100644
+--- a/include/image.h
++++ b/include/image.h
+@@ -53,3 +53,3 @@
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ #include <fdt_support.h>
+
+diff --git a/include/libfdt.h b/include/libfdt.h
+index 0f237dd..9ca7f66 100644
+--- a/include/libfdt.h
++++ b/include/libfdt.h
+@@ -55 +55 @@
+-#include <fdt.h>
++#include "fdt.h"
+
+diff --git a/lib/libfdt/libfdt_internal.h b/lib/libfdt/libfdt_internal.h
+index 8e4e0e9..a1c2d1e 100644
+--- a/lib/libfdt/libfdt_internal.h
++++ b/lib/libfdt/libfdt_internal.h
+@@ -50 +50 @@
+-#include <fdt.h>
++#include "../../include/fdt.h"
