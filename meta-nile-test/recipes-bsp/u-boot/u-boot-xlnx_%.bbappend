@@ -1,5 +1,9 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files/${COMPATIBLE_MACHINE}:"
 
+UBOOTURI:vb8034 = "git://github.com/ni/u-boot.git;protocol=https"
+UBRANCH:vb8034 = "lci/20.0.0"
+SRCREV:vb8034 = "16f92d12ef2f814e793bef4916f6a9db3d369b05"
+
 SRC_URI:append:genesyszu = " \
 	file://bsp.cfg \
 	file://0001-digilent-net-Add-entry-point-for-setting-zynq_get-MA.patch \
