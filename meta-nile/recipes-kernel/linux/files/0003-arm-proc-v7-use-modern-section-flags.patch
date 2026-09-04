@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI <noreply@ni.com>
+Date: Mon, 10 Aug 2026 19:33:00 +0000
+Subject: [PATCH] ARM: proc-v7: use modern section flags
+
+Recent GNU binutils no longer accepts the legacy ARM-specific #alloc and
+#execinstr section flags.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+---
+ arch/arm/mm/proc-v7.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -443,6 +443,6 @@
+ 	.align
+ 
+-	.section ".proc.info.init", #alloc, #execinstr
++	.section ".proc.info.init", "ax", %progbits
+ 
+ 	/*
+ 	 * Standard v7 proc info content
+-- 
+2.39.5
