@@ -1,0 +1,22 @@
+fdt addr ${loadaddr}
+fdt get value isgadgetcdrom /configurations/config@1 gadget-cdrom
+fdt get value isgadgetrndis /configurations/config@1 gadget-rndis
+fdt get value manufacturer /configurations/config@1 gadget-manufacturer
+
+if test "${isgadgetcdrom}" -ne 0; then
+	gadgetargs="${gadgetargs} g_lci.cdrom=1"
+fi
+
+if test "${isgadgetrndis}" -ne 0; then
+	gadgetargs="${gadgetargs} g_lci.rndis=1"
+fi
+
+# NOTE: do not let bootargs exceed 256 characters. Shipping builds of u-boot
+# (based on v2012.10) have a bug in fixup_silent_linux when running `bootm`:
+#   https://github.com/u-boot/u-boot/blob/v2012.10/common/cmd_bootm.c#L1240
+# u-boot tries to be fancy and squelch the console= argument when silent,
+# but only utilizes a 256-byte buffer when doing so, even though Linux
+# permits far longer cmdlines.
+
+setenv bootargs console=$console ubi.mtd=boot-config ubi.mtd=root root=/dev/$rootdev g_lci.idVendor=0x3923 g_lci.idProduct=${DeviceCode} g_lci.iSerialNumber=${serial#} g_lci.product="\"${DeviceDesc}\"" g_lci.manufacturer="\"${manufacturer}\"" ${gadgetargs}
+bootm
