@@ -1,0 +1,37 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/meta-xilinx.yml
+    - kas/includes/xilinx-device-common.yml
+
+machine: vb8034
+
+# Unlike kula/genesyszu-3eg (ZynqMP/Versal, SDT-based), VB-8034's Zynq-7000
+# uses static FSBL, FPGA, and NI Linux device-tree artifacts with Xilinx
+# bootgen, so XSCT/HDF generation is disabled.
+repos:
+  meta-lci:
+    path: "meta-lci"
+    layers:
+      .:
+
+  meta-xilinx:
+    layers:
+      meta-xilinx-bsp:
+      meta-xilinx-core:
+      meta-xilinx-standalone:
+
+  meta-xilinx-tools:
+    layers:
+      .:
+
+  # The VB-8034 needs none of the AMD adaptive SoC or OpenAMP layers that
+  # xilinx-device-common.yml enables.
+  meta-amd-adaptive-socs:
+    layers:
+      meta-amd-adaptive-socs-core: disabled
+      meta-amd-adaptive-socs-bsp: disabled
+
+  meta-openamp:
+    layers:
+      .: disabled
