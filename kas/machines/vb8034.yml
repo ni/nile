@@ -1,0 +1,35 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/meta-xilinx.yml
+    - kas/includes/xilinx-device-common.yml
+
+machine: vb8034
+
+# Unlike kula/genesyszu-3eg (ZynqMP/Versal, SDT-based), VB-8034's Zynq-7000
+# uses static FSBL, FPGA, and NI Linux device-tree artifacts with Xilinx
+# bootgen. XSCT/HDF generation is intentionally disabled for this legacy
+# target.
+repos:
+  meta-xilinx:
+    layers:
+      meta-xilinx-bsp:
+      meta-xilinx-core:
+      meta-xilinx-standalone:
+
+  meta-xilinx-tools:
+    layers:
+      .:
+
+  # meta-amd-adaptive-socs / meta-openamp are unconditionally fetched by
+  # xilinx-device-common.yml but are only LAYERRECOMMENDS (optional,
+  # AMP/remoteproc-for-ZynqMP/Versal) for meta-xilinx-standalone-sdt, not
+  # LAYERDEPENDS -- not needed for this Zynq-7000 (cortexa9) board.
+  # "layers: {}" keeps the repo fetched (required by the shared include)
+  # but contributes no BBLAYERS entries, avoiding kas's default of adding
+  # the (layer.conf-less) repo root when "layers" is omitted entirely.
+  meta-amd-adaptive-socs:
+    layers: {}
+
+  meta-openamp:
+    layers: {}
