@@ -1,0 +1,30 @@
+From 507379838df737b0fcbd020de9f92860677570bf Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Wed, 14 Oct 2026 10:33:19 -0500
+Subject: [PATCH 8/8] arm: dts: ni-vb80x4: disable WiFi
+
+Disable WiFi on the VB-8034.
+
+Upstream-Status: Inappropriate [NI 3.2 kernel only]
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ arch/arm/boot/dts/ni-vb80x4.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/ni-vb80x4.dts b/arch/arm/boot/dts/ni-vb80x4.dts
+index 6e386eebfbfa..df88fae4de5e 100644
+--- a/arch/arm/boot/dts/ni-vb80x4.dts
++++ b/arch/arm/boot/dts/ni-vb80x4.dts
+@@ -9,7 +9,7 @@
+ / {
+ 	amba@0 {
+ 		sdhci@e0100000 {
+-			status = "okay";
++			status = "disabled";
+ 		};
+ 
+ 		eth@e000b000 {
+-- 
+2.39.5
+
