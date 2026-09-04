@@ -175,13 +175,11 @@ Client teams should implement a self test for their products. See
 
 ## Build Pipeline
 
-_TODO. Since this is largely internal-focused should this link to a document
-on the internal wiki?_
+The NILE distribution build is driven by an internal NI build pipeline used for
+validation and release packaging. For the component-specific build entry point,
+see the `rtos_nilinuxembedded` README in the RTOS repo.
 
 ## Integrating NI-proprietary Software
-
-_TODO, needs to be fleshed out with actual process steps, but will largely
-look like nilrt's implementation?_
 
 An expected need for most NI products is that the firmware images will need
 to include some number of NI-proprietary binaries that are not open-source.
@@ -190,3 +188,5 @@ The preferred way that this be handled is:
 
 1. Build your software using an external build system, packaged into IPKs.
 2. Import a feed containing those IPKs, along with the NILE package feed, into your final image build.
+
+See [Building images from IPK feeds](kas.md#building-images-from-ipk-feeds).
