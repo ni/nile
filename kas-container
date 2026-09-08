@@ -25,5 +25,12 @@ export KAS_BUILD_DIR="${KAS_BUILD_DIR:-$KAS_WORK_DIR/build}"
 ${script_root_dir}/scripts/init-netrc "${KAS_BUILD_DIR}/netrc"
 export NETRC_FILE="${KAS_BUILD_DIR}/netrc"
 
+# If the Argo rnd share is mounted (ARGO_RND_MOUNT points at its mount point),
+# bind-mount it read-only at the same path so kas/includes/argo-sstate.yml can
+# read the shared sstate cache from inside the container. No-op when unset.
+if [ -n "${ARGO_RND_MOUNT:-}" ] && [ -d "${ARGO_RND_MOUNT}" ]; then
+	set -- --runtime-args "-v ${ARGO_RND_MOUNT}:${ARGO_RND_MOUNT}:ro" "$@"
+fi
+
 # forward on to real kas-container script
 exec ${script_root_dir}/scripts/kas-container "$@"
