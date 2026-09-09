@@ -36,5 +36,5 @@ lci_dev_enable_password_ssh () {
 }
 
 # Serial login on ttyPS0@115200 is already provided by the machine
-# (zynq-generic.conf: SERIAL_CONSOLES = "115200;ttyPS0") under systemd
-# (serial-getty@ttyPS0), matching the legacy inittab getty -- no change needed.
+# (zynq-generic.conf: SERIAL_CONSOLES = "115200;ttyPS0"), as an inittab getty
+# or serial-getty@ttyPS0, matching the legacy one -- no change needed.

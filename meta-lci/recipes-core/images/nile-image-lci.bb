@@ -31,8 +31,9 @@ inherit core-image
 # From-feeds images carry no build-time dep on the feed packages, so native tools
 # their preinsts / image commands invoke are not staged transitively:
 #  - useradd   (shadow-native): dbus-common preinst creating "messagebus"
-#  - systemctl (systemd-systemctl-native): systemd_preset_all at do_image
-do_rootfs[depends] += "shadow-native:do_populate_sysroot systemd-systemctl-native:do_populate_sysroot"
+#  - systemctl (systemd-systemctl-native): unit enabling and systemd_preset_all
+do_rootfs[depends] += "shadow-native:do_populate_sysroot \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-systemctl-native:do_populate_sysroot', '', d)}"
 
 # The runtime root is a read-only squashfs. The LCI runtime keeps writable state
 # on separate UBI volumes (config -> /etc/natinst/share, cal -> /mnt/cal); their
@@ -92,6 +93,19 @@ lci_fw_env_tool_links() {
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_fw_env_tool_links;"
 
+# Under sysvinit the serial getty (respawn) is ordered after "l5:5:wait:.../rc 5"
+# in /etc/inittab, so a hang in an rc5 service blocks the login prompt. Move the
+# ttyPS0 getty ahead of the runlevel rc entries so a login is always available.
+lci_serial_getty_before_rc() {
+    it="${IMAGE_ROOTFS}${sysconfdir}/inittab"
+    [ -f "$it" ] || return 0
+    line=$(grep -m1 '^PS0:' "$it") || return 0
+    [ -n "$line" ] || return 0
+    sed -i '/^PS0:/d' "$it"
+    awk -v ins="$line" '/^l0:0:wait/ && !x {print ins; x=1} {print}' "$it" > "$it.tmp" && mv "$it.tmp" "$it"
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_serial_getty_before_rc;"
+
 # The kernel and BOOT.bin boot from the bootfs volume, and the gadget serves the
 # SFP CD-ROM from the sfp1/sfp2 partition; the root copies are never read.
 lci_drop_unused_boot_payloads() {
@@ -99,6 +113,7 @@ lci_drop_unused_boot_payloads() {
     rm -f ${IMAGE_ROOTFS}/usr/local/natinst/share/lci/sfp.iso ${IMAGE_ROOTFS}/usr/local/natinst/share/lci/sfp.iso.sig
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_drop_unused_boot_payloads;"
+
 
 # --- LCI update bundle -------------------------------------------------------
 # Device identity (MANIFEST_*) and the bundle file name (LCI_BUNDLE_NAME) are
