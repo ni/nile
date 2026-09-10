@@ -1,0 +1,9 @@
+[Match]
+Name=eth0
+
+[Network]
+DHCP=yes
+
+[DHCPv4]
+# Identify by MAC, as udhcpc does, so the device keeps its DHCP lease.
+ClientIdentifier=mac
