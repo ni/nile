@@ -19,6 +19,6 @@ local_conf_header:
 
   lci-feed: |
     NILE_LCI_FEED_BASE ?= "http://argohttp.natinst.com/ni/linuxpkg/feeds/ipk/ni-l/ni-lci"
-    NILE_LCI_FEED_VER ?= "27.0.0/27.0.0.6-0+d6"
+    NILE_LCI_FEED_VER ?= "27.0.0/27.0.0.16-0+d16"
     NILE_LCI_FEED_URI ?= "${NILE_LCI_FEED_BASE}/${NILE_LCI_FEED_VER}/inline"
     IPK_FEED_URIS += " NILE-lci##${NILE_LCI_FEED_URI}"

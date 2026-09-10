@@ -12,6 +12,7 @@ IMAGE_FEATURES += "read-only-rootfs"
 IMAGE_INSTALL = "\
     packagegroup-core-boot \
     libubootenv-bin \
+    lci-target-config \
     ${CORE_IMAGE_EXTRA_INSTALL} \
     "
 
@@ -21,7 +22,7 @@ IMAGE_INSTALL = "\
 IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034"
 
 # OE packages that the feed packages depend on; NODEPS hides them from bitbake.
-LCI_FEED_DEPENDS = "libavahi-client"
+LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin"
 IMAGE_INSTALL:append = " ${LCI_FEED_DEPENDS}"
 
 # Read-only squashfs is the updater's root payload; the FIT lci.itb and bootfs
