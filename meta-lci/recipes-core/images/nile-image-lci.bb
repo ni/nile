@@ -60,6 +60,20 @@ lci_skip_target_postinsts() {
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_skip_target_postinsts;"
 
+# Keep the SSH host keys on the config volume
+lci_persistent_ssh_host_keys() {
+    keydir=${sysconfdir}/natinst/share/ssh
+    [ -e ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config_readonly ] || return 0
+    sed -i "s|^HostKey /var/run/ssh/|HostKey $keydir/|" ${IMAGE_ROOTFS}${sysconfdir}/ssh/sshd_config_readonly
+    sed -i "s|:-/var/run/ssh}|:-$keydir}|" ${IMAGE_ROOTFS}${sysconfdir}/default/ssh
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+        d=${IMAGE_ROOTFS}${sysconfdir}/systemd/system/sshdgenkeys.service.d
+        install -d $d
+        printf '[Unit]\nAfter=lci-populateconfig.service\n' > $d/lci-config-volume.conf
+    fi
+}
+do_rootfs[postfuncs] += "lci_persistent_ssh_host_keys"
+
 # Files on the config and cal volumes are owned by these users and groups,
 # which the LCI feed packages don't create. files/static-*-lci sets the IDs.
 USERADD_TABLE_CATEGORIES:append = " lci"
