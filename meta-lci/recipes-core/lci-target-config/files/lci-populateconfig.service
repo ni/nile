@@ -1,0 +1,14 @@
+[Unit]
+Description=Populate the LCI config and cal volumes
+DefaultDependencies=no
+Requires=lci-mountconfig.service lci-mountcal.service
+After=lci-mountconfig.service lci-mountcal.service
+Before=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=@LIBEXECDIR@/populateconfig start
+
+[Install]
+WantedBy=local-fs.target
