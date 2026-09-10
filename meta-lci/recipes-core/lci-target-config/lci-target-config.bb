@@ -1,12 +1,13 @@
-SUMMARY = "LCI target writable-volume mounts"
+SUMMARY = "LCI target writable-volume mounts and U-Boot env configuration"
 DESCRIPTION = "Boot steps that mount the persistent config and cal UBI volumes, \
-for sysvinit and systemd."
+for sysvinit and systemd, plus the fw_(printenv|setenv) configuration."
 LICENSE = "CLOSED"
 
 SRC_URI = "\
     file://lci-mountconfig.service \
     file://lci-mountcal.service \
     file://lci-populateconfig.service \
+    file://fw_env.config \
 "
 
 S = "${WORKDIR}"
@@ -31,8 +32,9 @@ do_install() {
         sed 's|@LIBEXECDIR@|${LCI_UTILS_DIR}|' ${S}/$f.service \
             > ${D}${systemd_system_unitdir}/$f.service
     done
+    install -D -m 0644 ${S}/fw_env.config ${D}${sysconfdir}/fw_env.config
 }
 
-FILES:${PN} += "${systemd_system_unitdir}"
+FILES:${PN} += "${sysconfdir}/fw_env.config ${systemd_system_unitdir}"
 
 COMPATIBLE_MACHINE = "vb8034"
