@@ -8,6 +8,7 @@ SRC_URI = "\
     file://lci-mountcal.service \
     file://lci-populateconfig.service \
     file://10-lci-eth0.network \
+    file://sshdgenkeys-lci.conf \
     file://fw_env.config \
 "
 
@@ -34,6 +35,9 @@ do_install() {
             > ${D}${systemd_system_unitdir}/$f.service
     done
     install -D -m 0644 ${S}/10-lci-eth0.network ${D}${systemd_unitdir}/network/10-lci-eth0.network
+    # Generate the SSH host keys on the config volume once it is populated.
+    install -D -m 0644 ${S}/sshdgenkeys-lci.conf \
+        ${D}${systemd_system_unitdir}/sshdgenkeys.service.d/lci-config-volume.conf
 
     install -D -m 0644 ${S}/fw_env.config ${D}${sysconfdir}/fw_env.config
 }
