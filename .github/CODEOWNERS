@@ -1,0 +1,6 @@
+# Default owners
+*	@gratian @cfuentes-ni @bstreiff
+
+# For safety, the CODEOWNERS file should be protected by the primary maintainers directly.
+# Always keep this line at the bottom of the file, for rule parsing.
+/.github/CODEOWNERS	@gratian @cfuentes-ni @bstreiff
