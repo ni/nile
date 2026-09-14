@@ -1,0 +1,3 @@
+# NI IPK packages use these. Reserve them for consistency.
+lvuser:x:500::::
+webserv:x:501::::
