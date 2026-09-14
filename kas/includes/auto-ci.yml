@@ -11,3 +11,9 @@ local_conf_header:
   # run tests automatically for any target that inherits from "testimage"
   auto-testimage: |
     TESTIMAGE_AUTO = "1"
+
+  # Mark automated (CI/PR) builds. Images opt into CI-only behavior from this;
+  # e.g. nile-image-lci defaults LCI_SIGN_METHOD to "linuxsigning" (production
+  # 'lci' key). Non-fatal unless the official pipeline sets LCI_SIGN_REQUIRED=1.
+  building-in-ci: |
+    NILE_BUILDING_IN_CI = "1"

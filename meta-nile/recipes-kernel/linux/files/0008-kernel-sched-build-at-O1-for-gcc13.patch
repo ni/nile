@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NI NILE <nile@ni.com>
+Date: Tue, 09 Sep 2026 00:00:00 +0000
+Subject: [PATCH] kernel: sched: build at -O1 under GCC 13
+
+GCC 13 miscompiles build_sched_domains() in kernel/sched.c at -O2: the
+initial `sd = NULL` does not reach the first build_sched_domain() call as
+the child argument, so sched_domain->child ends up holding a garbage value
+(observed 0x1). get_group() then dereferences it and oopses in
+_find_first_bit_le() during sched_init_smp(), killing init. The generic
+KCFLAGS mitigations (-fno-tree-loop-distribute-patterns,
+-fno-delete-null-pointer-checks, -fno-ipa-sra) do not cover this one.
+Compile just this file at -O1 to avoid the faulty transformation.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+---
+ kernel/Makefile | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernel/Makefile b/kernel/Makefile
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -123,5 +123,9 @@
+ # to get a correct value for the wait-channel (WCHAN in ps). --davidm
+ CFLAGS_sched.o := $(PROFILING) -fno-omit-frame-pointer
+ endif
+ 
++# GCC 13 miscompiles build_sched_domains() at -O2 (garbage sched_domain->child
++# -> oops in get_group/_find_first_bit_le during sched_init_smp). Build at -O1.
++CFLAGS_sched.o += -O1
++
+ $(obj)/configs.o: $(obj)/config_data.h
+-- 
+2.39.5
