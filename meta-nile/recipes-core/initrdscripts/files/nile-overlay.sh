@@ -35,7 +35,9 @@ WORK_DIR="${RWMOUNT}/work"
 factory_reset () {
 	umount "${RWMOUNT}"
 	info "reformatting user data partition"
-	mkfs.ext4 -q -F -L "data" "${data_part_device}" || fatal "nile-overlay: unable to reformat user data partition"
+
+	# btrfs mixed mode (-M) is soft-recommended for filesystems smaller than 5GiB.
+	mkfs.btrfs -q -M -f -L "data" "${data_part_device}" || fatal "nile-overlay: unable to reformat user data partition"
 
 	if mount -n -o rw,sync,relatime "${data_part_device}" "${RWMOUNT}"; then
 		info "remounted user data partition"
