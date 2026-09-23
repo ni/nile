@@ -18,4 +18,7 @@ part         --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/fit-images  --fix
 # As a result, the following partitions will be numbered starting at 5.
 part         --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsA            --align 1024
 part         --source rootfs --exclude-path=boot/                          --fixed-size=700M  --fstype=ext4  --use-label  --label rootfsB            --align 1024
-part                                                                       --size=150M        --fstype=ext4  --use-label  --label data               --align 1024
+# We use btrfs on the user data partition, but because our partition is "small"
+# (less than 5GiB, is part mkfs.btrfs manual) the recommendation is that we use
+# mixed mode for more efficient space usage.
+part                                                                       --size=150M        --fstype=btrfs --use-label  --label data               --align 1024 --mkfs-extraopts="--mixed"
