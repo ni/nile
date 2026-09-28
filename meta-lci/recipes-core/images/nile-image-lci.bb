@@ -25,6 +25,9 @@ IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts
 LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin"
 IMAGE_INSTALL:append = " ${LCI_FEED_DEPENDS}"
 
+# The Zynq-7000 has no hardware RNG; haveged seeds the CRNG before sshd starts.
+IMAGE_INSTALL:append = " haveged"
+
 # Read-only squashfs is the updater's root payload; the FIT lci.itb and bootfs
 # UBI volume are produced by lci-fitimage (EXTRA_IMAGEDEPENDS in vb8034.conf).
 IMAGE_FSTYPES = "squashfs"
