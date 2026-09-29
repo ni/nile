@@ -2,11 +2,10 @@ SUMMARY = "RAUC update bundle for ${MACHINE}"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-inherit bundle
+inherit nile-rauc-bundle
 
 # Define compatibility and version
 RAUC_BUNDLE_COMPATIBLE = "${MACHINE}"
-RAUC_BUNDLE_VERSION = "v1.0"
 RAUC_BUNDLE_FORMAT = "verity"
 
 # Specify which slots to include (usually rootfs)
