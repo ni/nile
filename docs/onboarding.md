@@ -61,7 +61,7 @@ but dissimilar enough that they need different recipes may have multiple
 `meta-` layer subdirectories.
 
 It is recommended that your branch name be something like
-`nile/<version>/<oename>`, e.g., `nile/26.0/scarthgap`.
+`nile/<version>/<oename>`, e.g., `nile/26.0/wrynose`.
 
 ## kas Configuration
 
@@ -105,7 +105,7 @@ repos:
   meta-xyzzy:
     url: "https://github.com/ni/meta-xyzzy.git"
     path: "layers/meta-xyzzy"
-    branch: "nile/26.0/scarthgap"
+    branch: "nile/26.0/wrynose"
 ```
 
 ### Machine Includes

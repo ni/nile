@@ -14,7 +14,7 @@ Clients are expected to have a `nile-selftest.bbappend` that installs a
 script or executable of their choosing as `/usr/bin/nile-selftest`.
 
 `nile-selftest` is currently run through a ptest runner, and as such, any
-output it has should follow [ptest output format](https://docs.yoctoproject.org/scarthgap/test-manual/ptest.html#testing-packages-with-ptest).
+output it has should follow [ptest output format](https://docs.yoctoproject.org/wrynose/test-manual/ptest.html#testing-packages-with-ptest).
 The ptest runner also checks the exit code of `nile-selftest` and reports
 a failure on non-zero return.
 
