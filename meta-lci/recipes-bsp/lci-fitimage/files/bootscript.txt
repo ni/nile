@@ -1,10 +1,21 @@
 fdt addr ${loadaddr}
 fdt get value isgadgetcdrom /configurations/config@1 gadget-cdrom
 fdt get value isgadgetrndis /configurations/config@1 gadget-rndis
-fdt get value manufacturer /configurations/config@1 gadget-manufacturer
+
+setenv gadgetargs
+if test "${isgadgetcdrom}" -ne 0; then
+	if test "${rootdev}" = "mtdblock8"; then
+		gadgetfile=/dev/mtdblock10
+	elif test "${rootdev}" = "mtdblock9"; then
+		gadgetfile=/dev/mtdblock11
+	else
+		echo "LCI CD-ROM disabled: unsupported root device ${rootdev}"
+		isgadgetcdrom=0
+	fi
+fi
 
 if test "${isgadgetcdrom}" -ne 0; then
-	gadgetargs="${gadgetargs} g_lci.cdrom=1"
+	gadgetargs="${gadgetargs} g_lci.cdrom=1 g_lci.file=${gadgetfile}"
 fi
 
 if test "${isgadgetrndis}" -ne 0; then
@@ -18,5 +29,5 @@ fi
 # but only utilizes a 256-byte buffer when doing so, even though Linux
 # permits far longer cmdlines.
 
-setenv bootargs console=$console ${extra_bootargs} ubi.mtd=boot-config ubi.mtd=root root=/dev/$rootdev g_lci.idVendor=0x3923 g_lci.idProduct=${DeviceCode} g_lci.iSerialNumber=${serial#} g_lci.product="\"${DeviceDesc}\"" g_lci.manufacturer="\"${manufacturer}\"" ${gadgetargs}
+setenv bootargs console=$console ${extra_bootargs} ubi.mtd=boot-config ubi.mtd=root root=/dev/$rootdev g_lci.idVendor=0x3923 g_lci.idProduct=${DeviceCode} g_lci.iSerialNumber=${serial#} g_lci.product="\"${DeviceDesc}\"" ${gadgetargs}
 bootm

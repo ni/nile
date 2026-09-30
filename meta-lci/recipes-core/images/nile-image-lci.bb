@@ -26,7 +26,7 @@ LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin"
 IMAGE_INSTALL:append = " ${LCI_FEED_DEPENDS}"
 
 # The Zynq-7000 has no hardware RNG; haveged seeds the CRNG before sshd starts.
-IMAGE_INSTALL:append = " haveged"
+IMAGE_INSTALL:append = " haveged lci-runtime"
 
 # Read-only squashfs is the updater's root payload; the FIT lci.itb and bootfs
 # UBI volume are produced by lci-fitimage (EXTRA_IMAGEDEPENDS in vb8034.conf).
@@ -93,6 +93,19 @@ lci_fix_softfloat_symlinks() {
     ln -sf busybox ${IMAGE_ROOTFS}${base_bindir}/hostname
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_fix_softfloat_symlinks;"
+
+# The NI feed binaries request /lib/ld-linux.so.3 as their interpreter.
+lci_legacy_loader_link() {
+    ln -sf ld-linux-armhf.so.3 ${IMAGE_ROOTFS}${base_libdir}/ld-linux.so.3
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_legacy_loader_link;"
+
+# OE runs ldconfig -X and the NI packages' postinsts don't run, so create the
+# NI libraries' soname links.
+lci_ni_soname_links() {
+    ldconfig -n ${IMAGE_ROOTFS}${libdir}/arm-linux-gnueabihf
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_ni_soname_links;"
 
 # libnitargetcfg (GetTargetID) runs /sbin/fw_printenv.
 lci_fw_env_tool_links() {
