@@ -34,9 +34,10 @@ do_kernel_configme:append:vb8034() {
         cp ${S}/arch/${ARCH}/configs/${KBUILD_DEFCONFIG} ${B}/.config
         # The root is a squashfs mounted directly (no initramfs).
         printf 'CONFIG_SQUASHFS=y\nCONFIG_SQUASHFS_LZO=y\n' >> ${B}/.config
-        # g_lci and its ChipIdea UDC are built in so the g_lci.* boot options
-        # apply. The UDC needs the usb-nop-xceiv PHY built in.
-        printf 'CONFIG_USB_GADGET=y\nCONFIG_USB_CHIPIDEA=y\nCONFIG_USB_CHIPIDEA_UDC=y\nCONFIG_USB_ULPI_BUS=y\nCONFIG_USB_CHIPIDEA_ULPI=y\nCONFIG_NOP_USB_XCEIV=y\nCONFIG_USB_LIBCOMPOSITE=y\nCONFIG_USB_F_HID_BULK=y\nCONFIG_USB_F_MASS_STORAGE=y\nCONFIG_USB_G_LCI=y\n' >> ${B}/.config
+        # The UDC needs the usb-nop-xceiv PHY built in.
+        # g_lci loads after the MTD partitions exist: its CD-ROM backing file is
+        # an mtdblock node. modprobe consumes the g_lci.* boot options.
+        printf 'CONFIG_USB_GADGET=y\nCONFIG_USB_CHIPIDEA=y\nCONFIG_USB_CHIPIDEA_UDC=y\nCONFIG_USB_ULPI_BUS=y\nCONFIG_USB_CHIPIDEA_ULPI=y\nCONFIG_NOP_USB_XCEIV=y\nCONFIG_USB_LIBCOMPOSITE=y\nCONFIG_USB_F_HID_BULK=y\nCONFIG_USB_F_MASS_STORAGE=y\nCONFIG_USB_G_LCI=m\n' >> ${B}/.config
         # The LCI daemon drives the FPGA through /dev/uio0 (uio_lci).
         printf 'CONFIG_UIO=y\nCONFIG_UIO_LCI=y\n' >> ${B}/.config
         # Zynq SWDT for the daemon, nowayout.

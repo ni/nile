@@ -1,0 +1,7 @@
+# vb8034Daemon runs as lvuser:ni.
+SUBSYSTEM=="uio", KERNEL=="uio0", OWNER="lvuser", GROUP="ni"
+SUBSYSTEM=="hidgb", OWNER="lvuser", GROUP="ni"
+SUBSYSTEM=="hidg_bulk", OWNER="lvuser", GROUP="ni"
+# libnitargetcfg reads the U-Boot environment through fw_printenv.
+SUBSYSTEM=="ubi", KERNEL=="ubi0", MODE="0644"
+SUBSYSTEM=="ubi", ATTR{name}=="u-boot-env[12]", MODE="0644"

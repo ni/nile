@@ -103,7 +103,6 @@ do_compile() {
             fpga = "fpga@1";
             gadget-cdrom = <1>;
             gadget-rndis = <0>;
-            gadget-manufacturer = "National Instruments";
         };
     };
 };
