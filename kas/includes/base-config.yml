@@ -45,12 +45,6 @@ repos:
     layers:
       meta:
     patches:
-      truncate-cve-check-warnings:
-        repo: meta-nile
-        path: "../kas/patches/oe-core/0001-cve-check-truncate-warning-messages-with-large-CVE-c.patch"
-      fix-cannot-find-any-spdx-file-on-version-changes-between-builds:
-        repo: meta-nile
-        path: "../kas/patches/oe-core/0001-classes-create-spdx-2.2-Fix-SPDX-dependencies-for-AB.patch"
       build-images-from-feeds-deploy-dir:
         repo: meta-nile
         path: "../kas/patches/oe-core/0002-package_manager-Change-deploy_dir-when-BUILD_IMAGES_FROM_FEEDS-is-enabled.patch"
