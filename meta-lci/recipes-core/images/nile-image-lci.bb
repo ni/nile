@@ -114,6 +114,16 @@ lci_fw_env_tool_links() {
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_fw_env_tool_links;"
 
+# libnitargetcfg reports the firmware version from nisafemodeversion, which
+# prints /etc/natinst/version.
+lci_firmware_version() {
+    install -d ${IMAGE_ROOTFS}${sysconfdir}/natinst ${IMAGE_ROOTFS}/usr/local/natinst/bin
+    echo "${LCI_FW_VERSION}" > ${IMAGE_ROOTFS}${sysconfdir}/natinst/version
+    printf '#!/bin/sh\ncat /etc/natinst/version\n' > ${IMAGE_ROOTFS}/usr/local/natinst/bin/nisafemodeversion
+    chmod 0755 ${IMAGE_ROOTFS}/usr/local/natinst/bin/nisafemodeversion
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_firmware_version;"
+
 # Under sysvinit the serial getty (respawn) is ordered after "l5:5:wait:.../rc 5"
 # in /etc/inittab, so a hang in an rc5 service blocks the login prompt. Move the
 # ttyPS0 getty ahead of the runlevel rc entries so a login is always available.
@@ -137,7 +147,8 @@ ROOTFS_POSTPROCESS_COMMAND += "lci_drop_unused_boot_payloads;"
 
 # --- LCI update bundle -------------------------------------------------------
 # The machine conf sets the device identity (MANIFEST_*) and LCI_BUNDLE_NAME.
-LCI_FW_VERSION ?= "${DISTRO_VERSION}"
+# The ni-central pipeline sets BUILDNAME to the workspace version.
+LCI_FW_VERSION ?= "${BUILDNAME}"
 
 # CI builds sign the bundle with the production 'lci' key on the NI signing
 # server, which only build machines can reach; local builds are unsigned. The

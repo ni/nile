@@ -19,7 +19,7 @@ PACKAGES = ""
 EXCLUDE_FROM_WORLD = "1"
 
 # Version string embedded in the FIT metadata (cosmetic).
-LCI_FW_VERSION ?= "${DISTRO_VERSION}"
+LCI_FW_VERSION ?= "${BUILDNAME}"
 
 # FPGA bitstream embedded in the FIT (VB2Master synth bit.bin, distinct from the
 # FSBL bootgen bitstream).
