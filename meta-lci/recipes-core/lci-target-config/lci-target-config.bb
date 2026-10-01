@@ -1,12 +1,14 @@
 SUMMARY = "LCI target writable-volume mounts and U-Boot env configuration"
-DESCRIPTION = "Boot steps that mount the persistent config and cal UBI volumes, \
-for sysvinit and systemd, plus the fw_(printenv|setenv) configuration."
+DESCRIPTION = "Boot steps that mount the persistent config and cal UBI volumes \
+and fix up unaligned accesses silently, for sysvinit and systemd, plus the \
+fw_(printenv|setenv) configuration."
 LICENSE = "CLOSED"
 
 SRC_URI = "\
     file://lci-mountconfig.service \
     file://lci-mountcal.service \
     file://lci-populateconfig.service \
+    file://lci-alignment.conf \
     file://10-lci-eth0.network \
     file://fw_env.config \
 "
@@ -28,16 +30,18 @@ do_install() {
         ln -sf ../..${LCI_UTILS_DIR}/populateconfig ${D}${sysconfdir}/rcS.d/S38populateconfig
     fi
 
-    install -d ${D}${systemd_system_unitdir}
+    install -d ${D}${systemd_system_unitdir} ${D}${nonarch_libdir}/tmpfiles.d
     for f in lci-mountconfig lci-mountcal lci-populateconfig; do
         sed 's|@LIBEXECDIR@|${LCI_UTILS_DIR}|' ${S}/$f.service \
             > ${D}${systemd_system_unitdir}/$f.service
     done
+    install -m 0644 ${S}/lci-alignment.conf ${D}${nonarch_libdir}/tmpfiles.d/
     install -D -m 0644 ${S}/10-lci-eth0.network ${D}${systemd_unitdir}/network/10-lci-eth0.network
 
     install -D -m 0644 ${S}/fw_env.config ${D}${sysconfdir}/fw_env.config
 }
 
-FILES:${PN} += "${sysconfdir}/fw_env.config ${systemd_system_unitdir} ${systemd_unitdir}/network"
+FILES:${PN} += "${sysconfdir}/fw_env.config ${systemd_system_unitdir} ${systemd_unitdir}/network \
+    ${nonarch_libdir}/tmpfiles.d"
 
 COMPATIBLE_MACHINE = "vb8034"
