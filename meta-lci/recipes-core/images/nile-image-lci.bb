@@ -19,10 +19,10 @@ IMAGE_INSTALL = "\
 # LCI runtime, installed from the ni-lci feed. These are feed-only packages
 # (no local OE recipe), so use IMAGE_INSTALL_NODEPS; opkg resolves their runtime
 # Depends from the configured feeds at do_rootfs.
-IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034"
+IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034 ni-auth"
 
 # OE packages that the feed packages depend on; NODEPS hides them from bitbake.
-LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin"
+LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin ca-certificates"
 IMAGE_INSTALL:append = " ${LCI_FEED_DEPENDS}"
 
 # The Zynq-7000 has no hardware RNG; haveged seeds the CRNG before sshd starts.
@@ -123,6 +123,17 @@ lci_firmware_version() {
     chmod 0755 ${IMAGE_ROOTFS}/usr/local/natinst/bin/nisafemodeversion
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_firmware_version;"
+
+# niauth_daemon and its clients (e.g. vb8034Daemon as lvuser) create sockets in
+# /var/local/natinst/ipc, which is on the read-only root; keep it on tmpfs.
+lci_niauth_ipc_volatile() {
+    install -d ${IMAGE_ROOTFS}/var/local/natinst ${IMAGE_ROOTFS}${sysconfdir}/default/volatiles
+    ln -sfn /var/volatile/natinst/ipc ${IMAGE_ROOTFS}/var/local/natinst/ipc
+    echo "d root root 1777 /var/volatile/natinst/ipc none" > ${IMAGE_ROOTFS}${sysconfdir}/default/volatiles/99_lci_niauth
+    install -d ${IMAGE_ROOTFS}${nonarch_libdir}/tmpfiles.d
+    echo "d /var/volatile/natinst/ipc 1777 root root -" > ${IMAGE_ROOTFS}${nonarch_libdir}/tmpfiles.d/lci-niauth.conf
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_niauth_ipc_volatile;"
 
 # Under sysvinit the serial getty (respawn) is ordered after "l5:5:wait:.../rc 5"
 # in /etc/inittab, so a hang in an rc5 service blocks the login prompt. Move the
