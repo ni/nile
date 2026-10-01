@@ -4,6 +4,9 @@ SUMMARY = "Development firmware image for LCI"
 
 LCI_BUNDLE_NAME = "VB-8034-dev.cfg"
 
+# Leave the nowayout SWDT unarmed so the daemon can be debugged.
+IMAGE_INSTALL:remove = "lci-runtime-watchdog"
+
 # Allow root login over SSH with the password 'nigel' (SHA-512 hash below).
 inherit extrausers
 EXTRA_USERS_PARAMS:append = " usermod -p '\$6\$lcidev\$.3jb22FKkJa6Ud8RqqJOLvSqrDHr5/6z0UvyrqETVa4cHTviv8vZTgAwoCCrd8xcK7Ik09sp00p1iQps0MGWz1' root;"
