@@ -5,3 +5,5 @@ SUBSYSTEM=="hidg_bulk", OWNER="lvuser", GROUP="ni"
 # libnitargetcfg reads the U-Boot environment through fw_printenv.
 SUBSYSTEM=="ubi", KERNEL=="ubi0", MODE="0644"
 SUBSYSTEM=="ubi", ATTR{name}=="u-boot-env[12]", MODE="0644"
+# The System Web Server (webserv) reads the U-Boot environment MTDs directly.
+SUBSYSTEM=="mtd", ATTR{name}=="u-boot-env[12]", MODE="0644"

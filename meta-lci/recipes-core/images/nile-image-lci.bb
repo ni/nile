@@ -19,12 +19,17 @@ IMAGE_INSTALL = "\
 # LCI runtime, installed from the ni-lci feed. These are feed-only packages
 # (no local OE recipe), so use IMAGE_INSTALL_NODEPS; opkg resolves their runtime
 # Depends from the configured feeds at do_rootfs. vb8034Daemon dlopens nicurl's
-# libcurlimpl, so no package depends on it.
-IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034 ni-auth nicurl"
+# libcurlimpl, so no package depends on it. The system web server has no
+# hard-float port yet; lci-legacy-webserver carries the soft-float one as a
+# chroot, with its own init script.
+IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034 ni-auth nicurl lci-legacy-webserver"
 
 # OE packages that the feed packages depend on; NODEPS hides them from bitbake.
 LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin ca-certificates"
 IMAGE_INSTALL:append = " ${LCI_FEED_DEPENDS}"
+
+# lci-legacy-webserver's postinst runs setcap at rootfs time.
+do_rootfs[depends] += "libcap-native:do_populate_sysroot"
 
 # The Zynq-7000 has no hardware RNG; haveged seeds the CRNG before sshd starts.
 IMAGE_INSTALL:append = " haveged lci-runtime lci-runtime-watchdog"
