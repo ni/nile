@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ni-dev
     steps:
-      - name: Set variables for PR run (TEST)
+      - name: Set variables for PR run
         if: ${{ github.event_name == 'pull_request_target' }}
         run: |
           echo "BUILD_REF=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
@@ -24,8 +24,8 @@ jobs:
       - name: Trigger Main
         uses: Azure/pipelines@v1.2
         with:
-          azure-devops-project-url: "https://dev.azure.com/ni/Users"
-          azure-pipeline-name: "cfuentes-pipelines"
-          azure-devops-token: ${{ secrets.CFC_TOKEN }}
+          azure-devops-project-url: "https://dev.azure.com/ni/DevCentral"
+          azure-pipeline-name: "ni-central-rtos-nile-github"
+          azure-devops-token: ${{ secrets.AZDO_PIPELINE_TRIGGERS }}
           azure-pipeline-variables: >
             {"BUILD_REF":"${{ env.BUILD_REF }}","REPO_URL":"${{ env.REPO_URL }}"}
