@@ -15,7 +15,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request_target' }}
         run: |
           echo "BUILD_REF=refs/pull/${{ github.event.pull_request.number }}/merge" >> $GITHUB_ENV
-          echo "REPO_URL=${{ github.server_url }}/${{ github.repository }}.git" >> $GITHUB_ENV
+          echo "REPO_URL=${{ github.server_url }}/${{ github.event.pull_request.base.repo.full_name }}.git" >> $GITHUB_ENV
       - name: Set variables for manual run
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
