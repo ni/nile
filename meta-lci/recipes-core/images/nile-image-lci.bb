@@ -18,8 +18,9 @@ IMAGE_INSTALL = "\
 
 # LCI runtime, installed from the ni-lci feed. These are feed-only packages
 # (no local OE recipe), so use IMAGE_INSTALL_NODEPS; opkg resolves their runtime
-# Depends from the configured feeds at do_rootfs.
-IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034 ni-auth"
+# Depends from the configured feeds at do_rootfs. vb8034Daemon dlopens nicurl's
+# libcurlimpl, so no package depends on it.
+IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034 ni-auth nicurl"
 
 # OE packages that the feed packages depend on; NODEPS hides them from bitbake.
 LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin ca-certificates"
