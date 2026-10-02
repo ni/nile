@@ -14,18 +14,90 @@ jobs:
       - name: Set variables for PR run
         if: ${{ github.event_name == 'pull_request_target' }}
         run: |
-          echo "BUILD_REF=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
-          echo "REPO_URL=${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name }}.git" >> $GITHUB_ENV
+          echo "MERGE_PR=true" >> $GITHUB_ENV
+          echo "BASE_REPO_URL=${{ github.server_url }}/${{ github.repository }}.git" >> $GITHUB_ENV
+          echo "BASE_REF=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+          echo "HEAD_REPO_URL=${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name }}.git" >> $GITHUB_ENV
+          echo "HEAD_REF=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+          echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
       - name: Set variables for manual run
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          echo "BUILD_REF=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "REPO_URL=${{ github.server_url }}/${{ github.repository }}.git" >> $GITHUB_ENV
+          echo "MERGE_PR=false" >> $GITHUB_ENV
+          echo "BASE_REPO_URL=${{ github.server_url }}/${{ github.repository }}.git" >> $GITHUB_ENV
+          echo "BASE_REF=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "HEAD_REPO_URL=" >> $GITHUB_ENV
+          echo "HEAD_REF=" >> $GITHUB_ENV
+          echo "HEAD_SHA=" >> $GITHUB_ENV
       - name: Trigger Main
+        id: trigger_step
         uses: Azure/pipelines@v1.2
         with:
           azure-devops-project-url: "https://dev.azure.com/ni/DevCentral"
           azure-pipeline-name: "ni-central-rtos-nile-github"
           azure-devops-token: ${{ secrets.AZDO_PIPELINE_TRIGGERS }}
           azure-pipeline-variables: >
-            {"BUILD_REF":"${{ env.BUILD_REF }}","REPO_URL":"${{ env.REPO_URL }}"}
+            {"MERGE_PR":"${{ env.MERGE_PR }}","BASE_REPO_URL":"${{ env.BASE_REPO_URL }}","BASE_REF":"${{ env.BASE_REF }}","HEAD_REPO_URL":"${{ env.HEAD_REPO_URL }}","HEAD_REF":"${{ env.HEAD_REF }}","HEAD_SHA":"${{ env.HEAD_SHA }}"}
+      - name: Wait for Azure Pipeline
+        shell: pwsh
+        env:
+          AZDO_TOKEN: ${{ secrets.AZDO_PIPELINE_TRIGGERS }}
+        run: |
+          $url = "${{ steps.trigger_step.outputs.pipeline-url }}"
+          $runId = [regex]::Match($url, 'buildId=(\d+)').Groups[1].Value
+
+          if ([string]::IsNullOrWhiteSpace($runId)) {
+            throw "Could not extract buildId from trigger output URL: $url"
+          }
+
+          Write-Host "Run ID: $runId"
+
+          $token = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$env:AZDO_TOKEN"))
+          $headers = @{ Authorization = "Basic $token"; 'Content-Type' = 'application/json' }
+          $sleepSeconds = 60
+          $maxSleepSeconds = 300
+
+          while ($true) {
+            $uri = "https://dev.azure.com/ni/DevCentral/_apis/build/builds/${runId}?api-version=7.1"
+            Write-Host "Checking URI: $uri"
+            $response = $null
+            $attempt = 1
+            while ($attempt -le 3) {
+              try {
+                $response = Invoke-RestMethod -Uri $uri -Headers $headers -ErrorAction Stop
+                break
+              }
+              catch {
+                $statusCode = $null
+                if ($_.Exception.Response -and $_.Exception.Response.StatusCode) {
+                  $statusCode = [int]$_.Exception.Response.StatusCode
+                }
+
+                if ($attempt -eq 3 -or $statusCode -notin 408, 429, 500, 502, 503, 504) {
+                  throw
+                }
+
+                $retrySeconds = 10 * $attempt
+                Write-Host "Transient AzDO error (HTTP $statusCode). Retry $attempt/3 in $retrySeconds seconds."
+                Start-Sleep -Seconds $retrySeconds
+                $attempt++
+              }
+            }
+
+            $state = $response.status
+            $result = $response.result
+
+            Write-Host "State=$state Result=$result"
+
+            if ($state -eq 'completed') {
+              if ($result -eq 'succeeded') {
+                exit 0
+              }
+
+              throw "Azure pipeline failed"
+            }
+
+            Write-Host "Sleeping for $sleepSeconds seconds before the next status check"
+            Start-Sleep -Seconds $sleepSeconds
+            $sleepSeconds = [Math]::Min($sleepSeconds * 2, $maxSleepSeconds)
+          }
