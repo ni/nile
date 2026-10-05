@@ -4,6 +4,33 @@ header:
     - kas/includes/base-config.yml
     - kas/machines/amd-cortexa9thf-neon-common.yml
 
+repos:
+  meta-xilinx:
+    branch: "rel-v2025.1"
+    layers:
+      meta-xilinx-core:
+      meta-xilinx-bsp:
+      meta-microblaze:
+      meta-xilinx-multimedia:
+      meta-xilinx-standalone:
+      meta-xilinx-standalone-sdt:
+
+  meta-xilinx-tools:
+    branch: "rel-v2025.1"
+    layers:
+      .:
+
+  meta-amd-adaptive-socs:
+    branch: "rel-v2025.1"
+    layers:
+      meta-amd-adaptive-socs-core:
+      meta-amd-adaptive-socs-bsp:
+
+  meta-openamp:
+    branch: "rel-v2025.1"
+    layers:
+      .:
+
 target:
   - meta-toolchain
 
