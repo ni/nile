@@ -5,6 +5,13 @@ local_conf_header:
   xilinx-licenses: |
     LICENSE_FLAGS_ACCEPTED += " xilinx"
 
+  remove-doubly-applied-systemd-patch:
+    # meta-xilinx has a backport for systemd that fails to apply
+    # after openembedded-core updated the version of systemd in
+    # scarthgap (to a version that includes the patch). Drop the
+    # backport.
+    SRC_URI:remove:pn-systemd = "file://0001-socket-downgrade-not-supported-logging-for-SO_PASSSE.patch"
+
 repos:
   meta-xilinx:
     url: "https://github.com/Xilinx/meta-xilinx.git"

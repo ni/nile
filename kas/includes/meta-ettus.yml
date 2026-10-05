@@ -13,6 +13,9 @@ local_conf_header:
     PACKAGECONFIG:pn-gnuradio ?= "uhd zeromq"
     PACKAGECONFIG:pn-gr-osmosdr ?= "uhd"
     PACKAGECONFIG:pn-boost ?= "locale python"
+    # mpmd configure checks for grpc_python_plugin, which is only produced when
+    # the native grpc recipe builds the python plugin support.
+    PACKAGECONFIG:pn-grpc-native ?= "cpp python shared"
 
     PREFERRED_UHD_VERSION ?= "4.9%"
     PREFERRED_VERSION_uhd ?= "${PREFERRED_UHD_VERSION}"

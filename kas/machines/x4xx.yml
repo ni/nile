@@ -19,6 +19,10 @@ local_conf_header:
   using-old-kernel: |
     OLDEST_KERNEL = "5.10"
 
+  force-xilinx-2025.1: |
+    XILINX_RELEASE_VERSION = "v2025.1"
+    XILINX_XSCT_VERSION = "2025.1"
+
 machine: ni-titanium-rev5-mender
 
 # meta-titanium/conf/multiconfig/ni-titanium.conf sets `DISTRO ?= "Alchemy"`
@@ -62,16 +66,22 @@ repos:
       meta-arm-toolchain:
 
   meta-xilinx:
+    commit: "f24f5dde78fe9a8a30d56f0ee6699bed29f21bcf"  # tag: xlnx-rel-v2025.1
     layers:
       meta-xilinx-core:
       meta-xilinx-bsp:
       meta-microblaze:
+      meta-xilinx-multimedia:
       meta-xilinx-standalone:
       meta-xilinx-standalone-sdt:
+
+  meta-xilinx-tools:
+    commit: "982572c8efe0070b198ed162c0a3f268b4a15d4a"  # tag: xlnx-rel-v2025.1
 
   meta-amd-adaptive-socs:
     layers:
       meta-amd-adaptive-socs-core:
+      meta-amd-adaptive-socs-bsp:
 
   meta-stm32:
     layers:

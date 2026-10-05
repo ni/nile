@@ -19,6 +19,7 @@ repos:
       meta-xilinx-bsp:
       meta-microblaze:
       meta-xilinx-core:
+      meta-xilinx-multimedia:
       meta-xilinx-standalone:
       meta-xilinx-standalone-sdt:
 
@@ -29,6 +30,7 @@ repos:
   meta-amd-adaptive-socs:
     layers:
       meta-amd-adaptive-socs-core:
+      meta-amd-adaptive-socs-bsp:
 
   meta-openamp:
     layers:
