@@ -40,6 +40,9 @@ IMAGE_FSTYPES = "squashfs"
 
 inherit core-image
 
+# Removing run-postinsts afterwards would leave its systemd enable link behind.
+ROOTFS_BOOTSTRAP_INSTALL = ""
+
 # From-feeds images carry no build-time dep on the feed packages, so native tools
 # their preinsts / image commands invoke are not staged transitively:
 #  - useradd   (shadow-native): dbus-common preinst creating "messagebus"

@@ -1,0 +1,37 @@
+From: Joe Hershberger <joe.hershberger@ni.com>
+Subject: [PATCH] socket-util: reserve cmsg room for glibc time64 conversion
+
+On 32-bit userspace built with _TIME_BITS=64, struct timeval/timespec are
+already the same size as timeval_large/timespec_large, so CMSG_SPACE_TIMEVAL
+and CMSG_SPACE_TIMESPEC reserve room for only one timestamp control message.
+
+On kernels older than 5.1 (no SO_TIMESTAMP_NEW), glibc requests the old
+timestamp option, the kernel returns a 32-bit SCM_TIMESTAMP, and glibc's
+__convert_scm_timestamps() appends a 64-bit copy after it. Without room for
+both, glibc sets MSG_CTRUNC and recvmsg_safe() fails with -EXFULL.
+
+Reserve both on any 32-bit build; 64-bit builds are unchanged.
+
+Upstream-Status: Inappropriate [kernels without SO_TIMESTAMP_NEW]
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ src/basic/socket-util.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/src/basic/socket-util.h
++++ b/src/basic/socket-util.h
+@@ -331,12 +331,12 @@
+  * See __convert_scm_timestamps() in glibc source code. Hence, we need additional buffer space for them
+  * to prevent from recvmsg_safe() returning -EXFULL. */
+ #define CMSG_SPACE_TIMEVAL                                              \
+-        ((sizeof(struct timeval) == sizeof(struct timeval_large)) ?     \
++        ((sizeof(struct timeval) == sizeof(struct timeval_large) && sizeof(long) == 8) ? \
+          CMSG_SPACE(sizeof(struct timeval)) :                           \
+          CMSG_SPACE(sizeof(struct timeval)) +                           \
+          CMSG_SPACE(sizeof(struct timeval_large)))
+ #define CMSG_SPACE_TIMESPEC                                             \
+-        ((sizeof(struct timespec) == sizeof(struct timespec_large)) ?   \
++        ((sizeof(struct timespec) == sizeof(struct timespec_large) && sizeof(long) == 8) ? \
+          CMSG_SPACE(sizeof(struct timespec)) :                          \
+          CMSG_SPACE(sizeof(struct timespec)) +                          \
+          CMSG_SPACE(sizeof(struct timespec_large)))
