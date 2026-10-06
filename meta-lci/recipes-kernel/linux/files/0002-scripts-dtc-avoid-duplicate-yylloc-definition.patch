@@ -1,0 +1,50 @@
+From b6ebcc90c8e305fae3096ce89d82305fa9e286b4 Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Mon, 10 Aug 2026 19:27:00 +0000
+Subject: [PATCH 2/7] scripts/dtc: avoid duplicate yylloc definition
+
+GCC 10 and later default to -fno-common.  The lexer and parser both
+define yylloc in this legacy DTC, so leave the definition in the parser
+and make the lexer declaration external.
+
+Upstream fixes this by deleting the lexer's definition (e33a814e772c),
+which relies on the newer generated parser header declaring yylloc; this
+tree's shipped parser header does not, so declare it here instead.
+
+Upstream-Status: Inappropriate [legacy kernel compatibility]
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ scripts/dtc/dtc-lexer.l             | 2 +-
+ scripts/dtc/dtc-lexer.lex.c_shipped | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/dtc/dtc-lexer.l b/scripts/dtc/dtc-lexer.l
+index e866ea5166ac..b91a085bee9a 100644
+--- a/scripts/dtc/dtc-lexer.l
++++ b/scripts/dtc/dtc-lexer.l
+@@ -38,7 +38,7 @@ LINECOMMENT	"//".*\n
+ #include "srcpos.h"
+ #include "dtc-parser.tab.h"
+ 
+-YYLTYPE yylloc;
++extern YYLTYPE yylloc;
+ 
+ /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
+ #define	YY_USER_ACTION \
+diff --git a/scripts/dtc/dtc-lexer.lex.c_shipped b/scripts/dtc/dtc-lexer.lex.c_shipped
+index 8bbe12817050..5d7f2bbcd67e 100644
+--- a/scripts/dtc/dtc-lexer.lex.c_shipped
++++ b/scripts/dtc/dtc-lexer.lex.c_shipped
+@@ -565,7 +565,7 @@ char *yytext;
+ #include "srcpos.h"
+ #include "dtc-parser.tab.h"
+ 
+-YYLTYPE yylloc;
++extern YYLTYPE yylloc;
+ 
+ /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
+ #define	YY_USER_ACTION \
+-- 
+2.39.5
+

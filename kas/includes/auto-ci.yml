@@ -11,3 +11,7 @@ local_conf_header:
   # run tests automatically for any target that inherits from "testimage"
   auto-testimage: |
     TESTIMAGE_AUTO = "1"
+
+  # Add a marker to indicate whether we're in an automated (CI/PR) build.
+  building-in-ci: |
+    NILE_BUILDING_IN_CI = "1"

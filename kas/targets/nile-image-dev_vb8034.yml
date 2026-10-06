@@ -1,0 +1,25 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/vb8034.yml
+
+local_conf_header:
+  disable-cve-check: |
+    INHERIT:remove = "cve-check"
+
+target:
+  - nile-image-dev
+
+artifacts:
+  "boot.bin": "tmp/deploy/images/vb8034/boot.bin"
+  "boot.scr": "tmp/deploy/images/vb8034/boot.scr"
+  "download-vb8034.bit": "tmp/deploy/images/vb8034/download-vb8034.bit"
+  "fsbl-vb8034.elf": "tmp/deploy/images/vb8034/fsbl-vb8034.elf"
+  "uImage": "tmp/deploy/images/vb8034/uImage"
+  "zImage": "tmp/deploy/images/vb8034/zImage"
+  "u-boot-vb8034.elf": "tmp/deploy/images/vb8034/u-boot-vb8034.elf"
+  "ni-vb80x4.dtb": "tmp/deploy/images/vb8034/ni-vb80x4.dtb"
+  "nile-image-dev-vb8034.rootfs.cpio.gz.u-boot": "tmp/deploy/images/vb8034/nile-image-dev-vb8034.rootfs.cpio.gz.u-boot"
+  "nile-image-dev-vb8034.rootfs.tar.gz": "tmp/deploy/images/vb8034/nile-image-dev-vb8034.rootfs.tar.gz"
+  "nile-image-dev-vb8034.rootfs.qemuboot.conf": "tmp/deploy/images/vb8034/nile-image-dev-vb8034.rootfs.qemuboot.conf"
