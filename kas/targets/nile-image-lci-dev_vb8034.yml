@@ -1,0 +1,17 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/vb8034.yml
+    - kas/includes/lci.yml
+
+target:
+  - nile-image-lci-dev
+
+artifacts:
+  "lci-kernel.itb": "tmp/deploy/images/vb8034/lci-kernel.itb"
+  "bootfs.ubifs": "tmp/deploy/images/vb8034/bootfs.ubifs"
+  "ni-vb80x4.dtb": "tmp/deploy/images/vb8034/ni-vb80x4.dtb"
+  "nile-image-lci-dev-vb8034.rootfs.squashfs": "tmp/deploy/images/vb8034/nile-image-lci-dev-vb8034.rootfs.squashfs"
+  "VB-8034-dev.cfg": "tmp/deploy/images/vb8034/VB-8034-dev.cfg"
+  "firmware.info": "tmp/deploy/images/vb8034/firmware.info"
