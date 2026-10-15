@@ -7,6 +7,7 @@ header:
 target:
   - mc:ni-titanium-ec:chromium-ec
   - mc:ni-titanium:gnuradio-image
+  - mc:ni-titanium:u-boot-jtag-files
 
 artifacts:
   "gnuradio-image-ni-titanium-rev5-mender.cve": "tmp/deploy/images/ni-titanium-rev5-mender/gnuradio-image-ni-titanium-rev5-mender.cve"
