@@ -15,9 +15,11 @@ local_conf_header:
     PACKAGECONFIG:pn-boost ?= "locale python"
     # mpmd configure checks for grpc_python_plugin, which is only produced when
     # the native grpc recipe builds the python plugin support.
-    PACKAGECONFIG:pn-grpc-native ?= "cpp python shared"
-
-    PREFERRED_UHD_VERSION ?= "4.9%"
+    PACKAGECONFIG:pn-grpc ?= "cpp shared python"
+    PACKAGECONFIG:pn-grpc-native ?= "cpp shared python"
+    PACKAGECONFIG:pn-protobuf ?= "compiler"
+    
+    PREFERRED_UHD_VERSION ?= "4.11%"
     PREFERRED_VERSION_uhd ?= "${PREFERRED_UHD_VERSION}"
     PREFERRED_VERSION_uhd-fpga-images ?= "${PREFERRED_UHD_VERSION}"
     PREFERRED_VERSION_mpmd ?= "${PREFERRED_UHD_VERSION}"
