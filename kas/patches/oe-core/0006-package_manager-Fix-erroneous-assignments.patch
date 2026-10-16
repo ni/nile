@@ -1,0 +1,41 @@
+From 250d561b9f6d343a185adef9a64e240fafe29d94 Mon Sep 17 00:00:00 2001
+From: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+Date: Fri, 28 Oct 2022 11:38:33 -0700
+Subject: [PATCH] package_manager: Fix erroneous assignments
+
+When BUILD_IMAGES_FROM_FEEDS is enabled, the package manager's
+deploy_dir should be set to DEPLOY_DIR_IPK, and directory creation
+should be disabled. During the hardknott rebase, commit 8404b1a
+accidentally overwrote these assumptions.
+
+Signed-off-by: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+(cherry picked from commit 73d2a9b95ddd1f94dbdfe6b7864b407358d9f080)
+---
+ meta/lib/oe/package_manager/ipk/__init__.py | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/meta/lib/oe/package_manager/ipk/__init__.py b/meta/lib/oe/package_manager/ipk/__init__.py
+index ec0cfea147..c70cc96552 100644
+--- a/meta/lib/oe/package_manager/ipk/__init__.py
++++ b/meta/lib/oe/package_manager/ipk/__init__.py
+@@ -172,7 +172,6 @@ class OpkgPM(OpkgDpkgPM):
+             self.deploy_dir = self.d.getVar("DEPLOY_DIR_IPK")
+         else:
+             self.deploy_dir = oe.path.join(self.d.getVar('WORKDIR'), ipk_repo_workdir)
+-        self.deploy_dir = oe.path.join(self.d.getVar('WORKDIR'), ipk_repo_workdir)
+         self.deploy_lock_file = os.path.join(self.deploy_dir, "deploy.lock")
+         self.opkg_cmd = bb.utils.which(os.getenv('PATH'), "opkg")
+         self.opkg_args = "--volatile-cache -f %s -t %s -o %s " % (self.config_file, self.d.expand('${T}/ipktemp/') ,target_rootfs)
+@@ -182,9 +181,6 @@ class OpkgPM(OpkgDpkgPM):
+             if prepare_index:
+                 create_packages_dir(self.d, self.deploy_dir, d.getVar("DEPLOY_DIR_IPK"), "package_write_ipk", filterbydependencies)
+ 
+-        if prepare_index:
+-            create_packages_dir(self.d, self.deploy_dir, d.getVar("DEPLOY_DIR_IPK"), "package_write_ipk", filterbydependencies)
+-
+         self.opkg_dir = oe.path.join(target_rootfs, self.d.getVar('OPKGLIBDIR'), "opkg")
+         bb.utils.mkdirhier(self.opkg_dir)
+ 
+-- 
+2.39.5
+
