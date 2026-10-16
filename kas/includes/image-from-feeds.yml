@@ -4,6 +4,7 @@ header:
 local_conf_header:
   image-from-feeds: |
     BUILD_IMAGES_FROM_FEEDS = "1"
+    IMAGE_CLASSES += "nile-image-from-feeds"
     # Base URI for feed content consumed during image assembly.
     # Set this to an external feed (http:// or file://) when consuming IPKs built elsewhere.
     NILE_FEEDS_URI ?= "file://${DEPLOY_DIR_IPK}"
