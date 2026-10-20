@@ -10,3 +10,5 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 #
 # [keyring]
 # path=ca.cert.pem
+
+RDEPENDS:${PN} += "rauc-post-upgrade"

@@ -1,0 +1,13 @@
+[Unit]
+Description=RAUC Post-Upgrade Cleanup Service
+After=rauc-mark-good.service
+Requires=rauc-mark-good.service
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/rauc-post-upgrade
+
+[Install]
+WantedBy=multi-user.target
