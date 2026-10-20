@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Since we have booted successfully, clean up the snapshot we made
+# during the upgrade process.
+
+if [ -e /data/@.old ]; then
+	btrfs subvolume delete /data/@.old
+fi
