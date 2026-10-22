@@ -15,7 +15,12 @@ do_install() {
 PACKAGES = "initramfs-module-nile-overlay"
 
 SUMMARY:initramfs-module-nile-overlay = "initramfs support for mounting NILE data partition as overlay"
-RDEPENDS:initramfs-module-nile-overlay = "initramfs-framework-base e2fsprogs-mke2fs"
+RDEPENDS:initramfs-module-nile-overlay = "\
+	initramfs-framework-base \
+	btrfs-tools \
+	systemd-analyze \
+	util-linux-exch \
+"
 RCONFLICTS:initramfs-module-nile-overlay = "initramfs-module-overlayroot"
 FILES:initramfs-module-nile-overlay = "/init.d/91-nileoverlay"
 

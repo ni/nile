@@ -11,6 +11,7 @@ IMAGE_INSTALL = "\
     valgrind \
     devmem2 \
     tcpdump \
+    btrfs-tools \
     "
 
 IMAGE_INSTALL:append:kula = " host-arm-net-mod"

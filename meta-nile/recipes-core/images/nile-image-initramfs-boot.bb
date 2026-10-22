@@ -17,6 +17,8 @@ IMAGE_LINGUAS = ""
 # Don't allow the initramfs to contain a kernel, as kernel modules will depend
 # on the kernel image.
 PACKAGE_EXCLUDE = "kernel-image-*"
+# The python runtime is large and we should make sure it doesn't get into a initramfs.
+PACKAGE_EXCLUDE += "python3-core"
 
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
 IMAGE_NAME_SUFFIX ?= ""
