@@ -1,0 +1,9 @@
+LINUX_VERSION = "6.18.57"
+
+KBRANCH = "nilrt/master/6.18"
+SRCREV = "771108a106a2c4334762022080bdc3002a6846e8"
+
+YOCTO_KMETA_BRANCH = "yocto-6.18"
+SRCREV_meta = "cf1eb35154969907fb08e980fe6d1881c97d6a97"
+
+include linux-nilrt.inc
