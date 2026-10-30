@@ -58,6 +58,28 @@ source mirror).
 
 External builders _should not_ add `ni-org.yml`.
 
+### Shared sstate cache
+
+The NILE PR pipeline publishes its sstate cache to the Argo `rnd` share.
+Internal builders can reuse it, so that a cold build fetches prebuilt objects
+instead of building them from source.
+
+1. Mount the Argo `rnd` share on the build host. Use a `cifs` mount: a WSL2
+   `drvfs` mount mangles the `:` in sstate file names, so nothing matches.
+2. Set `ARGO_RND_MOUNT` to the mount point and add
+   `kas/includes/argo-sstate.yml` to the build:
+
+```
+$ export ARGO_RND_MOUNT=/mnt/argo/RnD
+$ ./kas-container build kas/target-name.yml:kas/includes/argo-sstate.yml
+```
+
+`kas-container` mounts `ARGO_RND_MOUNT` read-only into the build container;
+the path must not contain spaces. The include uses the newest five cache
+snapshots as sstate mirrors, and does nothing if `ARGO_RND_MOUNT` is unset.
+Only tasks whose signatures match the pipeline's build come from the cache,
+so recipes you have changed still build locally.
+
 ## Building images from IPK feeds
 
 Use this to install packages from a prebuilt IPK feed during image assembly,
