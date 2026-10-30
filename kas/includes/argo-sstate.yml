@@ -1,0 +1,29 @@
+# Opt-in, machine-agnostic: reuse the NILE PR-pipeline sstate cache published to
+# the Argo NFS share, so cold / post-rebase builds pull prebuilt objects instead
+# of rebuilding from source.
+#
+# It is a NO-OP unless ARGO_RND_MOUNT is exported to the mount point of the Argo
+# //.../rnd share. The repo kas-container wrapper bind-mounts that path into the
+# container automatically when ARGO_RND_MOUNT is set, so nothing here is host- or
+# machine-specific.
+#
+# Usage:
+#   export ARGO_RND_MOUNT=/mnt/argo/RnD
+#   ./kas-container build kas/targets/<target>_<machine>.yml:kas/includes/argo-sstate.yml
+#
+# Note: an sstate hit still requires the task's signature to match the cached
+# one, so shared/native tasks (toolchain, common recipes) hit broadly while
+# locally-modified recipes won't -- that's expected.
+header:
+  version: 19
+
+env:
+  # Host mount point of the Argo rnd share; empty => this include does nothing.
+  ARGO_RND_MOUNT: ""
+
+local_conf_header:
+  argo-sstate: |
+    NILE_ARGO_SSTATE_ROOT = "${ARGO_RND_MOUNT}/RTOS/NILE-sstate-cache/nile_github_pr/sstate-cache"
+    # Newest 5 PR-run buckets (epoch-named dirs), newest first. Resolves to "" if
+    # the mount/dir is absent, so builds without the share are unaffected.
+    SSTATE_MIRRORS ?= "${@(lambda r: ' '.join('file://.* file://%s/%s/PATH' % (r, b) for b in sorted((e for e in os.listdir(r) if e.isdigit()), reverse=True)[:5]) if r and os.path.isdir(r) else '')(d.getVar('NILE_ARGO_SSTATE_ROOT'))}"
