@@ -25,5 +25,15 @@ export KAS_BUILD_DIR="${KAS_BUILD_DIR:-$KAS_WORK_DIR/build}"
 ${script_root_dir}/scripts/init-netrc "${KAS_BUILD_DIR}/netrc"
 export NETRC_FILE="${KAS_BUILD_DIR}/netrc"
 
+# Create a local signing key for RAUC bundles.
+# Since this is a locally-generated key, bundles will only be validly-signed
+# for images built by the same user. This is a stopgap to allow pipelines to
+# be able to build RAUC bundles (and developers to test with them without
+# having to make local edits to a bunch of recipes) until we have proper
+# signing infrastructure in place. (AB#3972149)
+if [ ! -d ${script_root_dir}/openssl-ca ]; then
+	scripts/openssl-ca.sh
+fi
+
 # forward on to real kas-container script
 exec ${script_root_dir}/scripts/kas-container "$@"

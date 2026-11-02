@@ -6,6 +6,7 @@ header:
 
 target:
   - nile-image-dev
+  - update-bundle
 
 artifacts:
   "Image.bin": "tmp/deploy/images/kula-vmk180/Image-kula-vmk180.bin"
