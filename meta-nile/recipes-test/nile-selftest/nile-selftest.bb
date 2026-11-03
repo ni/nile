@@ -27,7 +27,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://run-ptest"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 # nile-selftest will be an empty package if no client layer has a .bbappend
 # to install a nile-selftest executable. (The ptest runner handles this

@@ -1,6 +1,6 @@
 SUMMARY = "NI Linux Embedded development image"
 
-IMAGE_FEATURES += "splash ssh-server-openssh package-management debug-tweaks tools-sdk tools-debug"
+IMAGE_FEATURES += "splash ssh-server-openssh package-management allow-empty-password allow-root-login empty-root-password post-install-logging tools-sdk tools-debug"
 
 IMAGE_INSTALL = "\
     packagegroup-core-boot \

@@ -18,7 +18,7 @@ Reviewed-by: Haris Okanovic <haris.okanovic@ni.com>
 Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
 Natinst-Reviewboard-ID: 110700
 
-Rebased for OE-core scarthgap baseline.
+Rebased for OE-core Wrynose baseline.
 
 Note: manifest.py changes from the original commit are handled separately
 in 0005-manifest-add-PKG_TYPE_NODEPS.patch to avoid patch ordering
@@ -54,14 +54,11 @@ diff --git a/meta/classes-recipe/image.bbclass b/meta/classes-recipe/image.bbcla
 diff --git a/meta/classes/multilib.bbclass b/meta/classes/multilib.bbclass
 --- a/meta/classes/multilib.bbclass
 +++ b/meta/classes/multilib.bbclass
-@@ -114,6 +114,7 @@ python __anonymous () {
-         clsextend = oe.classextend.ClassExtender(variant, d)
- 
-         clsextend.map_depends_variable("PACKAGE_INSTALL")
-+        clsextend.map_depends_variable("PACKAGE_INSTALL_NODEPS")
-         clsextend.map_depends_variable("LINGUAS_INSTALL")
-         clsextend.map_depends_variable("RDEPENDS")
-         pinstall = d.getVar("LINGUAS_INSTALL") + " " + d.getVar("PACKAGE_INSTALL")
+@@ -117,3 +117,4 @@ python __anonymous () {
+         clsextend.set_filter("PACKAGE_INSTALL", deps=False)
++        clsextend.set_filter("PACKAGE_INSTALL_NODEPS", deps=False)
+         clsextend.set_filter("LINGUAS_INSTALL", deps=False)
+         clsextend.set_filter("ROOTFS_RO_UNNEEDED", deps=False)
 diff --git a/meta/conf/documentation.conf b/meta/conf/documentation.conf
 --- a/meta/conf/documentation.conf
 +++ b/meta/conf/documentation.conf
@@ -73,24 +70,18 @@ diff --git a/meta/conf/documentation.conf b/meta/conf/documentation.conf
  IMAGE_LINGUAS[doc] = "Specifies the list of locales to install into the image during the root filesystem construction process."
  IMAGE_NAME[doc] = "The name of the output image files minus the extension."
  IMAGE_OVERHEAD_FACTOR[doc] = "Defines a multiplier that the build system applies to the initial image size for cases when the multiplier times the returned disk usage value for the image is greater than the sum of IMAGE_ROOTFS_SIZE and IMAGE_ROOTFS_EXTRA_SPACE."
-@@ -318,5 +319,6 @@ PACKAGE_EXTRA_ARCHS[doc] = "Specifies the list of architectures compatible with
+@@ -308,3 +308,4 @@
  PACKAGE_INSTALL[doc] = "List of the packages to be installed into the image. The variable is generally not user-defined and uses IMAGE_INSTALL as part of the list."
  PACKAGE_INSTALL_ATTEMPTONLY[doc] = "List of packages attempted to be installed. If a listed package fails to install, the build system does not generate an error. This variable is generally not user-defined."
 +PACKAGE_INSTALL_NODEPS[doc] = "List of packages to be blindly installed into the image through the package manager. The variable is generally not user-defined and uses IMAGE_INSTALL_NODEPS as part of the list."
- PACKAGE_SNAP_LIB_SYMLINKS[doc] = "Rename library files based on their SONAME to avoid an extra layer of indirection through a symlink. Only suitable for a read-only rootfs where libraries are not upgraded in place."
  PACKAGECONFIG[doc] = "This variable provides a means of enabling or disabling features of a recipe on a per-recipe basis."
- PACKAGES[doc] = "The list of packages to be created from the recipe."
 diff --git a/meta/lib/oe/buildhistory_analysis.py b/meta/lib/oe/buildhistory_analysis.py
 --- a/meta/lib/oe/buildhistory_analysis.py
 +++ b/meta/lib/oe/buildhistory_analysis.py
-@@ -23,7 +23,7 @@ import bb.tinfoil
- 
- 
+@@ -26,3 +26,3 @@
  # How to display fields
 -list_fields = ['DEPENDS', 'RPROVIDES', 'RDEPENDS', 'RRECOMMENDS', 'RSUGGESTS', 'RREPLACES', 'RCONFLICTS', 'FILES', 'FILELIST', 'USER_CLASSES', 'IMAGE_CLASSES', 'IMAGE_FEATURES', 'IMAGE_LINGUAS', 'IMAGE_INSTALL', 'BAD_RECOMMENDATIONS', 'PACKAGE_EXCLUDE']
 +list_fields = ['DEPENDS', 'RPROVIDES', 'RDEPENDS', 'RRECOMMENDS', 'RSUGGESTS', 'RREPLACES', 'RCONFLICTS', 'FILES', 'FILELIST', 'USER_CLASSES', 'IMAGE_CLASSES', 'IMAGE_FEATURES', 'IMAGE_LINGUAS', 'IMAGE_INSTALL', 'BAD_RECOMMENDATIONS', 'PACKAGE_EXCLUDE', 'IMAGE_INSTALL_NODEPS']
  list_order_fields = ['PACKAGES']
- defaultval_map = {'PKG': 'PKG', 'PKGE': 'PE', 'PKGV': 'PV', 'PKGR': 'PR'}
- numeric_fields = ['PKGSIZE', 'IMAGESIZE']
 -- 
 2.47.0.vfs.0.3

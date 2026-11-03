@@ -8,7 +8,7 @@ env:
 
 defaults:
   repos:
-    branch: "scarthgap"
+    branch: "wrynose"
 
 local_conf_header:
   disk-space-monitoring: |
@@ -34,7 +34,7 @@ repos:
   bitbake:
     url: "https://git.openembedded.org/bitbake.git"
     path: "layers/bitbake"
-    branch: "2.8"
+    branch: "2.18"
     # This repo does not provide any layers.
     layers:
       .: disabled

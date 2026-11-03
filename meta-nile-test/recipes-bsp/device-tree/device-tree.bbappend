@@ -8,6 +8,6 @@ SRC_URI:append:genesyszu-3eg = " \
 		"
 
 do_configure:append() {
-	cp ${WORKDIR}/${SYSTEM_USER_DTSI} ${B}/device-tree
+	cp ${UNPACKDIR}/${SYSTEM_USER_DTSI} ${B}/device-tree
 	echo "#include \"system-user.dtsi\"" >> ${B}/device-tree/system-top.dts
 }

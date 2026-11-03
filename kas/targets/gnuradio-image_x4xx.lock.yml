@@ -3,32 +3,30 @@ header:
 overrides:
   repos:
     bitbake:
-      commit: d3b32587c2314febf96897f97e0172790b4fc1cf
+      commit: 6e260eb6ab1631607ea414d9ff8ede1155faa5d9
     meta-amd-adaptive-socs:
-      commit: 6b7eef28e7277e43bc01d8e0f1a0445923fb74a3
+      commit: 31792ed6569eb32a2f76f02647a165bae1ce5d7c
     meta-arm:
-      commit: 0a4b911d9fd63ab29c4532a907fae3282dbdcfe4
+      commit: 673e8d7c5dcd14de58092eb73e6ecc5eee5c1735
     meta-ettus:
       commit: 2556915c9214e723c935b7bc7d7a426e3a3c3021
     meta-mender:
-      commit: 1fa4f2c3c9f1f9023e8a384083476b60de3a8d0c
+      commit: 1b0a813e630a335acff12daff0da2e0aa59b191b
     meta-openamp:
       commit: e44e4a3b4abe9cc5fdfe75c43181ba82750f6865
     meta-openembedded:
-      commit: 0f00f8b9a21950640da8c5707343e5540133f86e
+      commit: c734c2cb9713dbd6d50697a9f6c25ebdf3ae589e
     meta-qt5:
-      commit: 916d37e38077850ff5a0ac4fce6f2a55ba5b2a86
+      commit: 4967c88083a9a385136252faeaf0ca04b701e892
     meta-sdr:
       commit: f1c81da49254ada1a551b75f2da13885ad4515a7
     meta-security:
-      commit: b13f1705d723650de61277670c8a76aadea4cfdd
+      commit: 2703974d5e2d61b221dffa302c2e059a522adbf3
     meta-stm32:
       commit: 671610c4d5541b65de983986faf0d3ca8d4fb4e9
     meta-virtualization:
-      commit: c141b3cd60ad3a1bbab22b4884742d4c082beda6
+      commit: 18d58082b2458cf85438ac6e0f2f1fd0153318cb
     meta-xilinx:
       commit: f24f5dde78fe9a8a30d56f0ee6699bed29f21bcf
-    meta-xilinx-tools:
-      commit: 982572c8efe0070b198ed162c0a3f268b4a15d4a
     openembedded-core:
-      commit: b4f06303e55c7270a8482a610927a1c41d5dbf9c
+      commit: ae5a301091f5b0574ea7444aab40b309b6d9f3f2

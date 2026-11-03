@@ -13,6 +13,9 @@ PACKAGE_INSTALL = "${INITRAMFS_SCRIPTS} ${VIRTUAL-RUNTIME_base-utils} base-passw
 # Ensure the initramfs only contains the bare minimum
 IMAGE_FEATURES = ""
 IMAGE_LINGUAS = ""
+EXTRA_IMAGEDEPENDS = ""
+IMAGE_CLASSES:remove = "qemuboot-xilinx"
+BAD_RECOMMENDATIONS += "systemd-mime"
 
 # Don't allow the initramfs to contain a kernel, as kernel modules will depend
 # on the kernel image.

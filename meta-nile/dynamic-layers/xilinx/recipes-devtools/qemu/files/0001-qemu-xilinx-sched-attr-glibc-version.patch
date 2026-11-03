@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+Date: Thu, 5 Nov 2026 00:00:00 +0000
+Subject: [PATCH] qemu-xilinx: guard sched_attr for glibc 2.41+
+
+glibc 2.41 and newer defines struct sched_attr. Keep QEMU's fallback
+definition for older glibc releases and non-glibc hosts.
+
+Upstream-Status: Inappropriate [Xilinx QEMU fork compatibility]
+---
+ linux-user/syscall.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/linux-user/syscall.c b/linux-user/syscall.c
+--- a/linux-user/syscall.c
++++ b/linux-user/syscall.c
+@@ -362,2 +362,4 @@
+ /* sched_attr is not defined in glibc */
++#if !defined(__GLIBC__) || (__GLIBC__ < 2) || \
++    (__GLIBC__ == 2 && __GLIBC_MINOR__ < 41)
+ struct sched_attr {
+@@ -375,2 +377,3 @@
+ };
++#endif
+ #define __NR_sys_sched_getattr __NR_sched_getattr

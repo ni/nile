@@ -3,22 +3,20 @@ header:
 overrides:
   repos:
     bitbake:
-      commit: d3b32587c2314febf96897f97e0172790b4fc1cf
+      commit: 6e260eb6ab1631607ea414d9ff8ede1155faa5d9
     meta-amd-adaptive-socs:
-      commit: 6b7eef28e7277e43bc01d8e0f1a0445923fb74a3
+      commit: f3c9a6e3d52f40abb4ef6a429fa075e44111b454
     meta-arm:
-      commit: 0a4b911d9fd63ab29c4532a907fae3282dbdcfe4
+      commit: 673e8d7c5dcd14de58092eb73e6ecc5eee5c1735
     meta-openamp:
-      commit: e44e4a3b4abe9cc5fdfe75c43181ba82750f6865
+      commit: 4dda04a45cdf609a4ecbb862a8835d4f79fa2606
     meta-openembedded:
-      commit: 0f00f8b9a21950640da8c5707343e5540133f86e
+      commit: c734c2cb9713dbd6d50697a9f6c25ebdf3ae589e
     meta-rauc:
-      commit: d63878f20eba7a85ecf53566e7a3377e78bb46ac
+      commit: 38da0e5866a953e664001ba90b5edad68d68cd5d
     meta-virtualization:
-      commit: c141b3cd60ad3a1bbab22b4884742d4c082beda6
+      commit: 18d58082b2458cf85438ac6e0f2f1fd0153318cb
     meta-xilinx:
-      commit: b5f7b674384e66dcfd5ce492a4ee700c3519d194
-    meta-xilinx-tools:
-      commit: 94fea5f042e34522e9caf70c134817a046ca7e08
+      commit: d0d780700c061c4ca6007680d0e3b03f2dad7641
     openembedded-core:
-      commit: b4f06303e55c7270a8482a610927a1c41d5dbf9c
+      commit: ae5a301091f5b0574ea7444aab40b309b6d9f3f2

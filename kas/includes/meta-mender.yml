@@ -14,4 +14,4 @@ repos:
   meta-mender:
     url: "https://github.com/mendersoftware/meta-mender"
     path: "layers/meta-mender"
-    branch: "scarthgap"
+    branch: "wrynose"

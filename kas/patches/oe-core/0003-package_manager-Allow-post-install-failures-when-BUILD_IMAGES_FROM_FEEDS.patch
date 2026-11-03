@@ -1,26 +1,19 @@
 From 204d67532c69dca446165acd1d8fd81c1931a77b Mon Sep 17 00:00:00 2001
 From: Alex Stewart <alex.stewart@ni.com>
 Date: Wed, 11 Aug 2021 11:42:37 -0500
-Subject: [PATCH] package_manager.py: Allow post-install failures when
+Subject: [PATCH] package_manager: Allow post-install failures when
  BUILD_IMAGES_FROM_FEEDS is enabled.
 
 When building an image from feeds, rootfs' package_write_ipk
 dependencies are ignored. This prevents tools required to run the
 post-install scripts from being installed to the native rootfs.
-Allow post-install failures when this happens, the scripts will
-be run on first boot instead.
+Allow post-install failures when this happens, the scripts will be
+run on first boot instead.
 
 Signed-off-by: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
 Signed-off-by: Alex Stewart <alex.stewart@ni.com>
 
-Moved original patch changes from package_manager.py to their
-equivalent location in the newer package_manager/* modules.
-
-Rebased-by: Alex Stewart <alex.stewart@ni.com>
-
-Rebased for kirkstone.
-
-Rebased-by: Alex Stewart <alex.stewart@ni.com>
+Rebased for OE-Core Wrynose.
 ---
  meta/lib/oe/package_manager/__init__.py     | 16 +++++++++++++---
  meta/lib/oe/package_manager/deb/__init__.py |  2 +-
@@ -79,15 +72,11 @@ diff --git a/meta/lib/oe/package_manager/ipk/__init__.py b/meta/lib/oe/package_m
 index 29a4bf08cd..ec0cfea147 100644
 --- a/meta/lib/oe/package_manager/ipk/__init__.py
 +++ b/meta/lib/oe/package_manager/ipk/__init__.py
-@@ -382,7 +382,7 @@ class OpkgPM(OpkgDpkgPM):
-                     bb.warn(line)
-                     failed_pkgs.append(line.split(".")[0])
+@@ -312,3 +312,3 @@ class OpkgPM(OpkgDpkgPM):
              if failed_pkgs:
 -                failed_postinsts_abort(failed_pkgs, self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
 +                failed_postinsts_handler(self.d, failed_pkgs, self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
          except subprocess.CalledProcessError as e:
-             (bb.fatal, bb.warn)[attempt_only]("Unable to install packages. "
-                                               "Command '%s' returned %d:\n%s" %
 diff --git a/meta/lib/oe/package_manager/rpm/__init__.py b/meta/lib/oe/package_manager/rpm/__init__.py
 index f40c880af4..54cbc37bbb 100644
 --- a/meta/lib/oe/package_manager/rpm/__init__.py
@@ -103,4 +92,3 @@ index f40c880af4..54cbc37bbb 100644
          if not pkgs:
 -- 
 2.47.0.vfs.0.3
-
