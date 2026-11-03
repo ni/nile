@@ -9,7 +9,7 @@ installed last.
 
 Signed-off-by: Bill Pittman <bill.pittman@ni.com>
 
-Ported to scarthgap baseline (6988157ad983978ffd6b12bcefedd4deaffdbbd1)
+Ported to Wrynose baseline.
 applied after 0004-PACKAGE_INSTALL_NODEPS-add.patch.
 ---
  meta/lib/oe/manifest.py | 10 ++++++++--

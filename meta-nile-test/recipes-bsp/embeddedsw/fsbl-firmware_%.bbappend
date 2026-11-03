@@ -6,5 +6,5 @@ YAML_COMPILER_FLAGS:append:genesyszu = " -DXPS_BOARD_GZU_3EG"
 
 # Workaround erroneous -O2 compilation setting in FSBL
 do_configure:append:genesyszu () {
-    sed -i "/BSP_FLAGS := -O2 -c/d" ${WORKDIR}/git/fsbl-firmware/fsbl-firmware/Makefile
+    sed -i "/BSP_FLAGS := -O2 -c/d" ${B}/${XSCTH_PROJ}/Makefile
 }

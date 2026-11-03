@@ -18,9 +18,10 @@ equivalent location in the newer package_manager/* modules.
 
 Rebased-by: Alex Stewart <alex.stewart@ni.com>
 
-Rebased for kirkstone.
+Rebased for OE-Core Wrynose: Refresh the IPK hunk context for the
+current OE-Core package manager.
 
-Rebased-by: Alex Stewart <alex.stewart@ni.com>
+Rebased-by: Cristina Fuentes-Curiel <cristina.fuentes-curiel@emerson.com>
 ---
  meta/lib/oe/package_manager/__init__.py     | 16 +++++++++++++---
  meta/lib/oe/package_manager/deb/__init__.py |  2 +-
@@ -79,15 +80,11 @@ diff --git a/meta/lib/oe/package_manager/ipk/__init__.py b/meta/lib/oe/package_m
 index 29a4bf08cd..ec0cfea147 100644
 --- a/meta/lib/oe/package_manager/ipk/__init__.py
 +++ b/meta/lib/oe/package_manager/ipk/__init__.py
-@@ -382,7 +382,7 @@ class OpkgPM(OpkgDpkgPM):
-                     bb.warn(line)
-                     failed_pkgs.append(line.split(".")[0])
+@@ -312,3 +312,3 @@ class OpkgPM(OpkgDpkgPM):
              if failed_pkgs:
 -                failed_postinsts_abort(failed_pkgs, self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
 +                failed_postinsts_handler(self.d, failed_pkgs, self.d.expand("${T}/log.do_${BB_CURRENTTASK}"))
          except subprocess.CalledProcessError as e:
-             (bb.fatal, bb.warn)[attempt_only]("Unable to install packages. "
-                                               "Command '%s' returned %d:\n%s" %
 diff --git a/meta/lib/oe/package_manager/rpm/__init__.py b/meta/lib/oe/package_manager/rpm/__init__.py
 index f40c880af4..54cbc37bbb 100644
 --- a/meta/lib/oe/package_manager/rpm/__init__.py
@@ -103,4 +100,3 @@ index f40c880af4..54cbc37bbb 100644
          if not pkgs:
 -- 
 2.47.0.vfs.0.3
-

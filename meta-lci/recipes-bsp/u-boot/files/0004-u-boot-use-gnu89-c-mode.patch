@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+Date: Mon, 10 Aug 2026 00:00:00 +0000
+Subject: [PATCH] u-boot: use GNU89 C and inline semantics
+
+This legacy tree relies on GNU89 inline semantics and uses identifiers
+such as bool that are keywords in C23. Select the GNU89 language mode for
+the GCC 15 toolchain.
+
+Based on Joe Hershberger's GNU89 inline workaround. The Wrynose
+adaptation also selects GNU89 C mode.
+
+Upstream-Status: Inappropriate [NI U-Boot lci/20.0.0 only]
+
+Signed-off-by: Cristina Fuentes-Curiel <cristina.fuentes-curiel@emerson.com>
+---
+ config.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/config.mk b/config.mk
+--- a/config.mk
++++ b/config.mk
+@@ -243,2 +243,3 @@
+ # with GCC 4.5.2 tools
++CFLAGS += -std=gnu89 -fgnu89-inline
+ CFLAGS += $(call cc-option,-mno-unaligned-access)

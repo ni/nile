@@ -77,5 +77,6 @@ fsgqa2:x:434:
 aie:x:433:
 tss:x:432:
 rpmsg:x:431:
+empower:x:430:
 
 # remainder reserved up to 200

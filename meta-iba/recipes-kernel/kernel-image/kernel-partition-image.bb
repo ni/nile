@@ -23,7 +23,7 @@ IMAGE_ROOTFS_SIZE = "${KERNEL_PARTITION_SIZE}"
 # This variable ensures the build will fail if the image size exceeds the partition size for any reason.
 IMAGE_ROOTFS_MAXSIZE = "${KERNEL_PARTITION_SIZE}"
 
-do_rootfs[depends] += "virtual/kernel:do_deploy"
+do_rootfs[depends] += "linux-yocto-fitimage:do_deploy"
 
 IMAGE_PREPROCESS_COMMAND += "fixup_image; "
 
