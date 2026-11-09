@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+#
+# Script to update the nilrt kernel recipes to current commits, so that we
+# don't have to use AUTOREV (because AUTOREV SRCREVs do not interact well
+# with restricting build-time network access with BB_ALLOWED_NETWORKS).
+
+import logging
+import os
+import sys
+import subprocess
+import argparse
+import shutil
+import re
+import tempfile
+from pathlib import Path
+from collections.abc import Iterator, Mapping
+
+DEFAULT_LOG_LEVEL = 'info'
+
+# we're in the /scripts directory, ascend to parent to get the nile root dir
+root_path = Path(__file__).parent.parent
+
+NILRT_KERNEL_REPO = "https://github.com/ni/linux.git"
+YOCTO_KMETA_REPO = "https://git.yoctoproject.org/yocto-kernel-cache"
+
+def get_updated_yocto_kmeta(repo: str, branch: str) -> Mapping[str, str]:
+    # for the yocto-kernel-cache repo, all we need out of here is the
+    # head commit hash, which we can get via ls-remote.
+    logging.info(f"Looking at remote repo {repo} for head commit on {branch}")
+    cmd_args = ["git", "ls-remote", "--branches", repo, branch]
+    try:
+        commit_id_regex = re.compile(r'([0-9a-f]+)\s+')
+        remote_branch = subprocess.check_output(cmd_args, encoding="utf-8").strip()
+
+        m = commit_id_regex.match(remote_branch)
+        if m:
+            commit_id = m[1]
+        else:
+            raise Exception(f"Unable to parse commit id from '{remote_branch}'")
+    except subprocess.CalledProcessError as cpe:
+        logging.error(f"Failure getting remote head commit for {repo}:{branch}")
+        logging.error(f"{cpe.cmd} returned exit code {cpe.returncode}")
+
+    return {
+        "SRCREV_meta": commit_id
+    }
+
+def get_updated_linux(repo: str, branch: str) -> Mapping[str, str]:
+    # For the linux kernel source itself, we do need to be able to grap the
+    # version out of the Makefile, which means that we can't just ls-remote,
+    # we need to make a clone.
+
+    with tempfile.TemporaryDirectory("update-nilrt-kernel") as tmpdir:
+
+        # Check out the repo at current HEAD.
+        logging.info(f"Getting a git clone of {repo} at {branch}")
+        cmd_args = ["git", "-C", tmpdir, "clone", "-b", branch, "--no-checkout",
+            "--depth", "1", repo]
+        try:
+            subprocess.run(cmd_args, check=True)
+        except subprocess.CalledProcessError as cpe:
+            logging.error(f"Failure checking out head commit for {repo}:{branch}")
+            logging.error(f"{cpe.cmd} returned exit code {cpe.returncode}")
+
+        # Get the current head commit
+        logging.info(f"Getting current head commit")
+        cmd_args = ["git", "-C", Path(tmpdir) / "linux", "rev-parse", "HEAD"]
+        try:
+            commit_id = subprocess.check_output(cmd_args, encoding="utf-8").strip()
+        except subprocess.CalledProcessError as cpe:
+            logging.error(f"Failure getting head commit ID for {repo}:{branch}")
+            logging.error(f"{cpe.cmd} returned exit code {cpe.returncode}")
+
+        # Get the contents of Makefile at our current head
+        logging.info(f"Looking at Makefile for current version")
+        cmd_args = ["git", "-C", Path(tmpdir) / "linux", "show", "HEAD:Makefile"]
+        try:
+            assign_regex = re.compile(r'(\w+)\s*=\s*(\d+)')
+            makefile_contents = subprocess.check_output(cmd_args, encoding="utf-8")
+
+            variables = {}
+            for line in makefile_contents.split("\n"):
+                # ignore comments
+                if line[0] == '#':
+                    continue
+
+                m = assign_regex.match(line)
+                if m:
+                    logging.debug(f"Makefile: Found variable {m[1]} = \"{m[2]}\"")
+                    variables[m[1]] = m[2]
+                # we're done once we have all three of these
+                if "VERSION" in variables and "PATCHLEVEL" in variables and "SUBLEVEL" in variables:
+                    break
+
+            if "VERSION" not in variables or "PATCHLEVEL" not in variables or "SUBLEVEL" not in variables:
+                raise Exception("Unable to get kernel version of makefile content")
+
+            kernel_version = f"{variables['VERSION']}.{variables['PATCHLEVEL']}.{variables['SUBLEVEL']}"
+
+        except subprocess.CalledProcessError as cpe:
+            logging.error(f"Failure getting remote head commit for {repo}:{branch}")
+            logging.error(f"{cpe.cmd} returned exit code {cpe.returncode}")
+
+    return {
+        "SRCREV": commit_id,
+        "LINUX_VERSION": kernel_version
+    }
+
+
+# Read a set of simple key-value assignments from a .bb file. Note that we're not
+# doing _any_ other evaluation here. We're only able to deal with these as simple
+# assignments.
+def read_bb_for_branches(path: Path):
+    assign_regex = re.compile(r'(\w+)\s*=\s*"(.*)"')
+
+    variables = {}
+
+    with open(path, "r") as bb:
+        for line in bb:
+            # ignore comments
+            if line[0] == '#':
+                continue
+
+            m = assign_regex.match(line)
+            if m:
+                logging.debug(f"{path.name}: Found variable {m[1]} = \"{m[2]}\"")
+                variables[m[1]] = m[2]
+
+    if "KBRANCH" not in variables:
+        raise Exception(f"Kernel branch variable (KBRANCH) not found in {path}")
+    if "YOCTO_KMETA_BRANCH" not in variables:
+        raise Exception(f"Yocto kmeta branch (YOCTO_KMETA_BRANCH) not found in {path}")
+
+    return {
+        "KBRANCH": variables["KBRANCH"],
+        "YOCTO_KMETA_BRANCH": variables["YOCTO_KMETA_BRANCH"]
+    }
+
+
+# Write a new copy of the .bb file, but with our variables replaced.
+def rewrite_bb_with_update(path: Path, vars):
+    assign_regex = re.compile(r'(\w+)\s*=\s*"(.*)"')
+
+    variables = {}
+    tmppath = path.with_suffix(".tmp")
+
+    with open(path, "r") as bb_old:
+        with open(tmppath, "w") as bb_new:
+            for line in bb_old:
+                line_written = False
+                # ignore comments
+                if line[0] != '#':
+                    m = assign_regex.match(line)
+                    if m and m[1] in vars and vars[m[1]] != m[2]:
+                        logging.info(f"{path.name}: Updating {m[1]} from {m[2]} to {vars[m[1]]}")
+                        bb_new.write(f"{m[1]} = \"{vars[m[1]]}\"\n")
+                        line_written = True
+                # no change, keep the old line
+                if not line_written:
+                    bb_new.write(f"{line}")
+
+    os.replace(tmppath, path)
+
+
+def update_recipe(path: Path):
+    logging.info(f"Updating {path.name}")
+    vars = read_bb_for_branches(path);
+    vars.update(get_updated_yocto_kmeta(YOCTO_KMETA_REPO, vars["YOCTO_KMETA_BRANCH"]))
+    vars.update(get_updated_linux(NILRT_KERNEL_REPO, vars["KBRANCH"]))
+    rewrite_bb_with_update(path, vars)
+
+
+# Collect up all the linux-nilrt recipe paths that have a numeric version
+# attached to them. (This avoids non-stapled recipes, e.g., things like
+# "linux-nilrt_git.bb".)
+def collect_all_target_recipe_paths(p: Path) -> Iterator[Path]:
+    if p.is_file() and p.suffixes == [".bb"]:
+        logging.debug(f"Single file: {p}")
+        yield p
+    else:
+        logging.debug(f"Walking directory: {p}")
+        for root, dirs, files in os.walk(p):
+            for file in files:
+                filepath = Path(root).joinpath(file)
+
+                logging.debug(f"Evaluating file {filepath}")
+                if filepath.full_match("**/linux-nilrt_[0-9]*.bb"):
+                    yield filepath
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--log-level',
+        choices=['debug', 'info', 'warning', 'error', 'critical'],
+        default=f'{DEFAULT_LOG_LEVEL}',
+        help=f'Set log level (default: {DEFAULT_LOG_LEVEL})')
+
+    args = parser.parse_args()
+
+    logging.getLogger().setLevel(args.log_level.upper())
+    logging.debug("Debug logging enabled")
+    logging.debug(f"args: {args}")
+
+    recipe_root = root_path.joinpath("meta-nile/recipes-kernel/linux")
+
+    for recipe_path in collect_all_target_recipe_paths(recipe_root):
+        update_recipe(recipe_path)
+
+if __name__ == '__main__':
+    sys.exit(main())
