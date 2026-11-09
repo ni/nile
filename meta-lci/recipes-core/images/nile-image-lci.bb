@@ -137,6 +137,7 @@ do_bundle[depends] += "lci-fitimage:do_deploy lci-legacy-sfp:do_deploy"
 # linuxsigning reaches the signing server over the network; ssh is a host tool.
 do_bundle[network] = "1"
 HOSTTOOLS += "ssh"
+do_bundle[vardepsexclude] += "SSH_AUTH_SOCK"
 do_bundle() {
     local work="${WORKDIR}/cfg"
     rm -rf "${work}"
@@ -178,6 +179,8 @@ EOF
         # linuxsigning detached-signature interface (see ni-central
         # src/daqmx/firmware/nifwsigning). Production 'lci' key. Non-fatal on
         # failure unless LCI_SIGN_REQUIRED=1 (official builds).
+        # Authenticate with the ssh-agent that kas forwards, if any.
+        export SSH_AUTH_SOCK="${SSH_AUTH_SOCK}"
         sign_failed=0
         for f in lci.itb root.squashfs sfp.iso; do
             if ! ${LCI_SIGN_TOOL} sign --key ${LCI_SIGN_KEY} --digest ${LCI_SIGN_DIGEST} \
