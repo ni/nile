@@ -13,3 +13,10 @@ local_conf_header:
     SOURCE_MIRROR_URL ?= "http://argohttp.natinst.com/RTOS/oe-source-mirror/"
   ni-nile-feeds: |
     NILE_FEEDS_URI = "http://nickdanger.natinst.com/feeds/${NILE_FEED_NAME}"
+  artifactory-nuget-indices: |
+    # ni artifactory repositories
+    NUGET_REGISTRY_rnd-nuget-release = "https://niartifacts.jfrog.io/artifactory/api/nuget/v3/rnd-nuget-release/index.json"
+    NUGET_REGISTRY_rnd-nuget-pre = "https://niartifacts.jfrog.io/artifactory/api/nuget/v3/rnd-nuget-pre/index.json"
+    # registries have non-semver package versions
+    NUGET_REGISTRY_rnd-nuget-release_SEMVER = "0"
+    NUGET_REGISTRY_rnd-nuget-pre_SEMVER = "0"
