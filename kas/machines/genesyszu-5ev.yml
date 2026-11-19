@@ -1,0 +1,6 @@
+header:
+  version: 19
+  includes:
+    - kas/machines/genesyszu-common.yml
+
+machine: genesyszu-5ev
