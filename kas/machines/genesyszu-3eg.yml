@@ -5,12 +5,21 @@ header:
     - kas/includes/meta-virtualization.yml
     - kas/includes/meta-rauc.yml
     - kas/includes/xilinx-device-common.yml
+    - kas/includes/meta-digilent.yml
+    - kas/includes/meta-digilent-bsp.yml
 
 machine: genesyszu-3eg
 
 repos:
+  # temporary until meta-digilent(-bsp) gains a nile-selftest
   meta-nile-test:
     path: "meta-nile-test"
+
+  meta-digilent:
+    layers:
+      .:
+
+  meta-digilent-bsp:
     layers:
       .:
 
