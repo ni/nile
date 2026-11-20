@@ -14,7 +14,7 @@ do_compile[depends] += "virtual/kernel:do_deploy"
 
 inherit deploy
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 PACKAGES = ""
 EXCLUDE_FROM_WORLD = "1"
 
@@ -39,7 +39,7 @@ do_compile() {
 
     install -m 0644 "${DEPLOY_DIR_IMAGE}/Image" "${fit}/Image"
     install -m 0644 "${DEPLOY_DIR_IMAGE}/${KERNEL_DEVICETREE}" "${fit}/ni-lci.dtb"
-    install -m 0644 "${WORKDIR}/bootscript.txt" "${fit}/bootscript.txt"
+    install -m 0644 "${S}/bootscript.txt" "${fit}/bootscript.txt"
 
     if [ ! -f "${LCI_FPGA_BITBIN}" ]; then
         bbfatal "LCI_FPGA_BITBIN not found: ${LCI_FPGA_BITBIN}"

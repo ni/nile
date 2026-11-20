@@ -16,16 +16,11 @@ repos:
 
   meta-xilinx:
     layers:
-      meta-xilinx-bsp:
       meta-microblaze:
       meta-xilinx-core:
       meta-xilinx-multimedia:
       meta-xilinx-standalone:
       meta-xilinx-standalone-sdt:
-
-  meta-xilinx-tools:
-    layers:
-      .:
 
   meta-amd-adaptive-socs:
     layers:

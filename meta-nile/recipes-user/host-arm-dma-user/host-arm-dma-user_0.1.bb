@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0-only;md5=801f80980d171d
 SRC_URI = "file://host-arm-dma-wait.c \
 		   file://host-arm-dma-uapi.h"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_compile() {
 	${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} host-arm-dma-wait.c -o host-arm-dma-wait

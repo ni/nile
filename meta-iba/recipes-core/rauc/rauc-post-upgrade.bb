@@ -15,7 +15,7 @@ SRC_URI += "\
 	file://rauc-post-upgrade \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install:append () {
 	install -d ${D}${systemd_unitdir}/system/

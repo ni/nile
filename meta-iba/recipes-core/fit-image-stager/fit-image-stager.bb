@@ -2,8 +2,8 @@ SUMMARY = "Stages fitImage into a directory under /boot for later reference in w
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-# Ensure the kernel has finished and deployed before this recipe runs
-do_install[depends] += "virtual/kernel:do_deploy"
+# Ensure the FIT image has been deployed before staging it.
+do_install[depends] += "linux-yocto-fitimage:do_deploy"
 
 FIT_DEST_PATH = "/boot/fit-images"
 

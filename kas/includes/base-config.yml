@@ -8,7 +8,7 @@ env:
 
 defaults:
   repos:
-    branch: "scarthgap"
+    branch: "wrynose"
 
 local_conf_header:
   disk-space-monitoring: |
@@ -34,7 +34,7 @@ repos:
   bitbake:
     url: "https://git.openembedded.org/bitbake.git"
     path: "layers/bitbake"
-    branch: "2.8"
+    branch: "2.18"
     # This repo does not provide any layers.
     layers:
       .: disabled
@@ -45,12 +45,6 @@ repos:
     layers:
       meta:
     patches:
-      truncate-cve-check-warnings:
-        repo: meta-nile
-        path: "../kas/patches/oe-core/0001-cve-check-truncate-warning-messages-with-large-CVE-c.patch"
-      fix-cannot-find-any-spdx-file-on-version-changes-between-builds:
-        repo: meta-nile
-        path: "../kas/patches/oe-core/0001-classes-create-spdx-2.2-Fix-SPDX-dependencies-for-AB.patch"
       build-images-from-feeds-deploy-dir:
         repo: meta-nile
         path: "../kas/patches/oe-core/0002-package_manager-Change-deploy_dir-when-BUILD_IMAGES_FROM_FEEDS-is-enabled.patch"

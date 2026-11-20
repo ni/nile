@@ -9,4 +9,4 @@ repos:
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization.git"
     path: "layers/meta-virtualization"
-    branch: "scarthgap"
+    branch: "wrynose"

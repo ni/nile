@@ -49,6 +49,7 @@ repos:
       meta-webserver:
 
   meta-openamp:
+    branch: "rel-v2025.1"
     layers:
       .:
 
@@ -69,16 +70,13 @@ repos:
     commit: "f24f5dde78fe9a8a30d56f0ee6699bed29f21bcf"  # tag: xlnx-rel-v2025.1
     layers:
       meta-xilinx-core:
-      meta-xilinx-bsp:
       meta-microblaze:
       meta-xilinx-multimedia:
       meta-xilinx-standalone:
       meta-xilinx-standalone-sdt:
 
-  meta-xilinx-tools:
-    commit: "982572c8efe0070b198ed162c0a3f268b4a15d4a"  # tag: xlnx-rel-v2025.1
-
   meta-amd-adaptive-socs:
+    branch: "rel-v2025.1"
     layers:
       meta-amd-adaptive-socs-core:
       meta-amd-adaptive-socs-bsp:
