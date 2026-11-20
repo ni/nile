@@ -1,0 +1,36 @@
+#!/bin/sh
+# Load the LCI USB gadget with the g_lci.* options from the kernel command line
+# and prepare what vb8034Daemon needs before it starts as lvuser.
+
+lci_value() {
+    sed -n "s/.*g_lci\\.$1=\\([^ ]*\\).*/\\1/p" /proc/cmdline
+}
+
+lci_string() {
+    sed -n "s/.*g_lci\\.$1=\"\\([^\"]*\\)\".*/\\1/p" /proc/cmdline
+}
+
+id_vendor=$(lci_value idVendor)
+id_product=$(lci_value idProduct)
+serial_number=$(lci_value iSerialNumber)
+manufacturer=$(lci_string manufacturer)
+product=$(lci_string product)
+cdrom=$(lci_value cdrom)
+backing_file=$(lci_value file)
+if test -z "$id_vendor" || test -z "$id_product" || \
+   test -z "$serial_number" || test -z "$product" || \
+   test -z "$cdrom" || test -z "$backing_file"; then
+    echo "Missing g_lci parameters in /proc/cmdline" >&2
+    exit 1
+fi
+/sbin/modprobe usb_f_hid_bulk || exit $?
+set -- idVendor="$id_vendor" idProduct="$id_product" \
+    iSerialNumber="$serial_number" product="$product" \
+    cdrom="$cdrom" file="$backing_file"
+test -z "$manufacturer" || set -- "$@" manufacturer="$manufacturer"
+/sbin/modprobe g_lci "$@" || exit $?
+# Wait for udev to apply the lvuser ownership of the new hidg nodes.
+udevadm settle
+mkdir -p /var/run/natinst
+chown lvuser:ni /var/run/natinst
+chmod 775 /var/run/natinst

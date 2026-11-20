@@ -1,0 +1,16 @@
+[Unit]
+Description=Mount the LCI config volume on /etc/natinst/share
+DefaultDependencies=no
+After=systemd-udev-trigger.service systemd-remount-fs.service lci-mountcal.service
+Before=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Don't race udev coldplug: a failed mount makes the script reformat the volume.
+ExecStartPre=/usr/bin/udevadm settle
+ExecStart=@LIBEXECDIR@/mountconfig start
+ExecStop=@LIBEXECDIR@/mountconfig stop
+
+[Install]
+WantedBy=local-fs.target

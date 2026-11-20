@@ -1,0 +1,16 @@
+[Unit]
+Description=Mount the LCI calibration volume on /mnt/cal
+DefaultDependencies=no
+After=systemd-udev-trigger.service systemd-remount-fs.service
+Before=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Don't race udev coldplug: a failed mount makes the script reformat the volume.
+ExecStartPre=/usr/bin/udevadm settle
+ExecStart=@LIBEXECDIR@/mountcal start
+ExecStop=@LIBEXECDIR@/mountcal stop
+
+[Install]
+WantedBy=local-fs.target

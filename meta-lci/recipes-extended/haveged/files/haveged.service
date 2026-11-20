@@ -1,0 +1,14 @@
+[Unit]
+Description=Entropy daemon (haveged)
+Documentation=man:haveged(8)
+DefaultDependencies=no
+After=systemd-tmpfiles-setup-dev.service
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+# haveged can't detect the Cortex-A9's 32 KiB L1 cache sizes.
+ExecStart=@SBINDIR@/haveged -F -w 1024 -d 32 -i 32
+
+[Install]
+WantedBy=sysinit.target

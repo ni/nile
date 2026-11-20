@@ -1,0 +1,14 @@
+[Unit]
+Description=Set the LCI hostname
+DefaultDependencies=no
+After=local-fs.target lci-populateconfig.service
+Before=network-pre.target sysinit.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=@LIBEXECDIR@/lci-hostname
+
+[Install]
+WantedBy=sysinit.target
