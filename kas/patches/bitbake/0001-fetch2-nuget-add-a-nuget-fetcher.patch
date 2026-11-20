@@ -1,0 +1,609 @@
+From a5dbe2c488e839325e4e55b7a600d93bbc7e6ba5 Mon Sep 17 00:00:00 2001
+From: Brenda Streiff <brenda.streiff@emerson.com>
+Date: Tue, 18 Nov 2025 13:24:28 -0600
+Subject: [PATCH] fetch2/nuget: add a nuget fetcher
+
+Adds a fetcher to retrieve artifacts from NuGet package repositories.
+
+This fetcher contains a basic handrolled implementation of the NuGet V3
+API in order to not rely on the NuGet.exe client.
+
+The implementation otherwise is significantly cribbed from the NPM fetcher,
+which is otherwise similar in its approach (e.g. having to contact a package
+registry in order to obtain a true download URL).
+
+Signed-off-by: Brenda Streiff <brenda.streiff@emerson.com>
+---
+ .../bitbake-user-manual-fetching.rst          |  38 +++
+ lib/bb/fetch2/__init__.py                     |   2 +
+ lib/bb/fetch2/nuget.py                        | 310 ++++++++++++++++++
+ lib/bb/tests/fetch.py                         | 190 +++++++++++
+ 4 files changed, 540 insertions(+)
+ create mode 100644 lib/bb/fetch2/nuget.py
+
+diff --git a/doc/bitbake-user-manual/bitbake-user-manual-fetching.rst b/doc/bitbake-user-manual/bitbake-user-manual-fetching.rst
+index fb4f0a23d..fa2e9ba04 100644
+--- a/doc/bitbake-user-manual/bitbake-user-manual-fetching.rst
++++ b/doc/bitbake-user-manual/bitbake-user-manual-fetching.rst
+@@ -823,6 +823,44 @@ as described in the :yocto_docs:`Creating Node Package Manager (NPM) Packages
+ </dev-manual/packages.html#creating-node-package-manager-npm-packages>`
+ section of the Yocto Project.
+ 
++.. _nuget-fetcher:
++
++NuGet Fetcher (``nuget://``)
++----------------------------
++
++This submodule fetches archives from a
++`NuGet <https://en.wikipedia.org/wiki/NuGet>`__ package registry.
++Such packages are typically hosted on https://www.nuget.org/ but
++other repositories can be used.
++
++The format for the :term:`SRC_URI` setting must be::
++
++   SRC_URI = "nuget://REGISTRY/NAME/VERSION;ParameterA=xxx;ParameterB=xxx;..."
++
++*REGISTRY* is the name of the package source. Any package sources that
++are not ``nuget.org`` must have a corresponding ``NUGET_REGISTRY_sourcename``
++variable set to the repository's
++`Service Index URL <https://learn.microsoft.com/en-us/nuget/api/service-index>`__.
++For example:
++
++   # Azure Artifacts:
++   # See: https://learn.microsoft.com/en-us/azure/devops/artifacts/get-started-nuget?view=azure-devops
++   NUGET_REGISTRY_myazurerepo = https://pkgs.dev.azure.com/myOrganization/MyProject/_packaging/MyFeed/nuget/v3/index.json
++
++   # Artifactory repos:
++   # See: https://jfrog.com/help/r/jfrog-artifactory-documentation/connect-the-nuget-client-to-artifactory
++   NUGET_REGISTRY_myartifactoryrepo = https://myOrganization.jfrog.io/artifactory/api/nuget/v3/MyFeed/index.json
++
++A default registry for ``nuget.org`` is provided, pointing at nuget.org's
++service index location of ``https://api.nuget.org/v3/index.json``.
++
++This fetcher uses the "v3" ``SearchQueryService`` API to find packages. The "v2" API is not supported.
++
++This fetcher supports the following parameters:
++
++-  *"downloadfilename":* Specifies the filename used when storing the downloaded file.
++
++
+ Other Fetchers
+ --------------
+ 
+diff --git a/lib/bb/fetch2/__init__.py b/lib/bb/fetch2/__init__.py
+index e89f5be2a..9c426f78d 100644
+--- a/lib/bb/fetch2/__init__.py
++++ b/lib/bb/fetch2/__init__.py
+@@ -2096,6 +2096,7 @@ from . import npmsw
+ from . import az
+ from . import crate
+ from . import gcp
++from . import nuget
+ 
+ methods.append(local.Local())
+ methods.append(wget.Wget())
+@@ -2118,3 +2119,4 @@ methods.append(npmsw.NpmShrinkWrap())
+ methods.append(az.Az())
+ methods.append(crate.Crate())
+ methods.append(gcp.GCP())
++methods.append(nuget.Nuget())
+diff --git a/lib/bb/fetch2/nuget.py b/lib/bb/fetch2/nuget.py
+new file mode 100644
+index 000000000..0c7829f71
+--- /dev/null
++++ b/lib/bb/fetch2/nuget.py
+@@ -0,0 +1,310 @@
++"""
++BitBake nuget fetcher implementation
++
++SRC_URI = "nuget://REGISTRY/PACKAGE/VERSION;OptionA=xxx;OptionB=xxx;..."
++
++Downloads a nuget package named PACKAGE with version VERSION from REGISTRY.
++The default "nuget.org" registry is preloaded; others may be added by setting
++the environment variable NUGET_REGISTRY_name to the registry's service index
++URL. (This functions similarly to <packageSources> in NuGet.exe's configuration.)
++
++Supported SRC_URI options are:
++
++- downloadfilename
++    Specifies the filename used when storing the downloaded file.
++
++This fetcher uses the nuget v3 API's SearchQueryService to look up a package
++id/version; this does require a few extra URL hops to get us to a download URL.
++
++The nuget v3 API does have a PackageBaseAddress service that would be a more
++direct path to a download URL, but unfortunately, Artifactory does not support
++it in all cases (it requires a sercer-side "NuGet Restore Layout" setting), so
++we have to do the search route.
++See https://github.com/dependabot/dependabot-core/issues/8887#issuecomment-1935082966
++where they also ran into this.
++"""
++# Copyright (C) 2026 National Instruments
++#
++# Based on bb.fetch2.wget and bb.fetch2.npm.
++#
++# SPDX-License-Identifier: GPL-2.0-only
++
++import base64
++import json
++import os
++import re
++import tempfile
++import bb
++import urllib
++import zipfile
++from bb.fetch2 import Fetch
++from bb.fetch2 import FetchError
++from bb.fetch2 import FetchMethod
++from bb.fetch2 import MalformedUrl
++from bb.fetch2 import MissingParameterError
++from bb.fetch2 import ParameterError
++from bb.fetch2 import runfetchcmd
++from bb.fetch2 import URI
++from bb.fetch2.wget import Wget
++from bb.utils import is_semver
++
++class Nuget(Wget):
++    """Class to fetch a package from a nuget repository"""
++
++    KNOWN_REGISTRIES = {
++        'nuget.org': 'https://api.nuget.org/v3/index.json',
++    }
++
++    def __init__(self, *args, **kwargs):
++        super(Nuget, self).__init__(*args, **kwargs)
++
++        self.search_query_sources = {}
++
++    def _service_index_url(self, ud, d):
++        index_url = d.getVar("NUGET_REGISTRY_%s" % ud.registry)
++        if not index_url and ud.registry in self.KNOWN_REGISTRIES:
++            index_url = self.KNOWN_REGISTRIES[ud.registry]
++
++        if not index_url:
++            raise ParameterError("Unknown nuget registry '%s'; set NUGET_REGISTRY_%s to the service index URL." % (ud.registry, ud.registry), ud.url)
++
++        return index_url
++
++    def _fetch_resource(self, ud, d, uri, suffix="resource"):
++        # directly invoke wget to retrieve resource data to traverse the index
++
++        bb.debug(1, "Fetching %s content from %s" % (suffix, uri))
++        f = tempfile.NamedTemporaryFile()
++        with tempfile.TemporaryDirectory(prefix="nuget-%s-" % suffix) as workdir, tempfile.NamedTemporaryFile(dir=workdir, prefix="nuget-%s" % suffix) as f:
++            fetchcmd = self.basecmd
++            fetchcmd += " -O " + f.name + " --user-agent='" + self.user_agent + "' '" + uri + "'"
++            fetchcmd += " --compression=auto"
++
++            json_text = ""
++            try:
++                self._runwget(ud, d, fetchcmd, True, workdir=workdir)
++                json_text = f.read().decode()
++                json_result = json.loads(json_text)
++                return json_result
++            except json.decoder.JSONDecodeError:
++                raise FetchError("Unable to parse %s response as json" % suffix, uri)
++
++        return None
++
++    def _get_search_query_service_url(self, ud, d, registry):
++        # if we've previously found the url for SearchQueryService, use it
++        if registry in self.search_query_sources:
++            return self.search_query_sources[registry]
++
++        service_index_url = self._service_index_url(ud, d)
++        service_index = self._fetch_resource(ud, d, service_index_url, suffix="service-index")
++
++        # parse the service index:
++        # https://learn.microsoft.com/en-us/nuget/api/service-index
++        if not 'version' in service_index:
++            raise FetchError("Service index json doesn't have a version key; Is this a nuget repository?", service_index_url)
++        if not 'resources' in service_index:
++            raise FetchError("Service index json doesn't have a resources key; Is this a nuget repository?", service_index_url)
++
++        for rsrc in service_index['resources']:
++            if not '@type' in rsrc:
++                raise FetchError("Service resource is missing @type", service_index_url)
++            if not '@id' in rsrc:
++                raise FetchError("Service resource is missing @id", service_index_url)
++            if rsrc['@type'].startswith("SearchQueryService/"):
++                # cache the url so we don't need to look it up again
++                self.search_query_service = rsrc['@id']
++                return rsrc['@id']
++
++        raise FetchError("Unable to find SearchQueryResource in service index.", service_index_url)
++
++    def _get_package_download_url(self, ud, d, registry, package, version):
++        search_query_service = self._get_search_query_service_url(ud, d, registry)
++        # Build a search query to find our package by id
++        # https://learn.microsoft.com/en-us/nuget/api/search-query-service-resource
++        #
++        # The query string is not well-specified, and different servers may interpret
++        # it differently. nuget.org seems to have trouble returning anything but the
++        # current version of a package, even when we specify 'version:x.y.z'
++        # as documented.
++        search_query_url = (self.search_query_service + '?q=' +
++            urllib.parse.quote(package) + '&semVerLevel=2.0.0&prerelease=true')
++        listing_data = self._fetch_resource(ud, d, search_query_url, suffix='package-query')
++
++        package_metadata_url = None
++        # Look through the listing to find the package that actually exact-matches
++        # the id we were looking for (instead of a substring match like how nuget.org
++        # seems to treat queries)
++        for package_data in listing_data['data']:
++            if package_data['id'] == package:
++                if version == "latest":
++                    version = package_data['version']
++
++                # Look through all the versions to find the one that matches
++                bb.debug(1, "found package %s in metadata" % package)
++                for ver in package_data['versions']:
++                    if ver['version'] == version:
++                        package_metadata_url = ver['@id']
++                        break;
++
++        if package_metadata_url is None:
++            raise FetchError("Unable to find package %s version %s" % (package, version), search_query_url)
++
++        version_listing_data = self._fetch_resource(ud, d, package_metadata_url, suffix='package-md-query')
++
++        download_url = version_listing_data['packageContent']
++
++        bb.debug(1, "packageContent URL for package: %s" % download_url)
++
++        return download_url
++
++    def supports(self, ud, d):
++        """Check if a given url can be fetched with nuget"""
++        return ud.type in ["nuget"]
++
++    def urldata_init(self, ud, d):
++        """Init nuget specific variables within url data"""
++        super(Nuget, self).urldata_init(ud, d)
++
++        # URL syntax is: nuget://[user@pass:]REGISTRY/PACKAGE/VERSION;options
++        # superclass urldata_init has already done decodeurl() for some of this but
++        # we need to break up the path.
++        ud.registry = ud.host;
++        parts = ud.path.split('/')
++        if len(parts) < 3:
++            raise MalformedUrl("Invalid URL: Must be nuget://REGISTRY/NAME/VERSION", ud.url)
++
++        ud.package = parts[1]
++        ud.version = parts[2]
++
++        if not ud.registry:
++            raise MissingParameterError("registry", ud.url)
++
++        if not ud.package:
++            raise MissingParameterError("package", ud.url)
++
++        if not ud.version:
++            raise MissingParameterError("version", ud.url)
++
++        registry_requires_semver = int(d.getVar("NUGET_REGISTRY_%s_SEMVER" % ud.registry) or "1")
++
++        if registry_requires_semver and (not is_semver(ud.version) and ud.version != "latest"):
++            raise ParameterError("Version parameter is invalid", ud.url)
++
++        # superclass urldata_init set default basename based on path, we need to reset it
++        if 'downloadfilename' in ud.parm:
++            ud.basename = ud.parm['downloadfilename']
++        else:
++            ud.basename = "%s-%s.nupkg" % (ud.package, ud.version)
++
++        ud.localfile = os.path.join("nuget", d.expand(urllib.parse.unquote(ud.basename)))
++
++        # This fetcher resolves a real download URI using the package name and version,
++        # then passes it along to the wget fetcher. Similar to the npm fetcher, create
++        # a resolve file with the resolved URI to avoid unwanted network access.
++        ud.proxy = None
++        ud.needdonestamp = False
++        ud.resolvefile = self.localpath(ud, d) + ".resolved"
++
++    def _resolve_proxy_url(self, ud, d):
++        """Fetch urls"""
++
++        uri = URI(self._get_package_download_url(ud, d, ud.registry, ud.package, ud.version))
++
++        uri.params["downloadfilename"] = ud.localfile
++        for checksum_id in [ "md5sum", "sha256sum", "sha1sum", "sha384sum", "sha512sum" ]:
++            if checksum_id in ud.parm:
++                uri.params[checksum_id] = ud.parm[checksum_id]
++
++        bb.utils.mkdirhier(os.path.dirname(ud.resolvefile))
++        with open(ud.resolvefile, "w") as f:
++            f.write(str(uri))
++
++    def _setup_proxy(self, ud, d):
++        if ud.proxy is None:
++            if not os.path.exists(ud.resolvefile):
++                self._resolve_proxy_url(ud, d)
++
++            with open(ud.resolvefile, "r") as f:
++                url = f.read()
++
++            # Avoid conflicts between the environment data and:
++            # - the proxy url checksum
++            data = bb.data.createCopy(d)
++            data.delVarFlags("SRC_URI")
++            ud.proxy = Fetch([url], data)
++
++    def _get_proxy_method(self, ud, d):
++        self._setup_proxy(ud, d)
++        proxy_url = ud.proxy.urls[0]
++        proxy_ud = ud.proxy.ud[proxy_url]
++        proxy_d = ud.proxy.d
++        proxy_ud.setup_localpath(proxy_d)
++        return proxy_ud.method, proxy_ud, proxy_d
++
++    def verify_donestamp(self, ud, d):
++        """Verify the donestamp file"""
++        proxy_m, proxy_ud, proxy_d = self._get_proxy_method(ud, d)
++        return proxy_m.verify_donestamp(proxy_ud, proxy_d)
++
++    def update_donestamp(self, ud, d):
++        """Update the donestamp file"""
++        proxy_m, proxy_ud, proxy_d = self._get_proxy_method(ud, d)
++        proxy_m.update_donestamp(proxy_ud, proxy_d)
++
++    def need_update(self, ud, d):
++        """Force a fetch, even if localpath exists ?"""
++        if not os.path.exists(ud.resolvefile):
++            return True
++        if ud.version == "latest":
++            return True
++        proxy_m, proxy_ud, proxy_d = self._get_proxy_method(ud, d)
++        return proxy_m.need_update(proxy_ud, proxy_d)
++
++    def try_mirrors(self, fetch, ud, d, mirrors):
++        """Try to use a mirror"""
++        proxy_m, proxy_ud, proxy_d = self._get_proxy_method(ud, d)
++        return proxy_m.try_mirrors(fetch, proxy_ud, proxy_d, mirrors)
++
++    def download(self, ud, d):
++        """Fetch url"""
++        self._setup_proxy(ud, d)
++        ud.proxy.download()
++
++    def unpack(self, urldata, rootdir, data):
++        try:
++            unpack = bb.utils.to_boolean(urldata.parm.get('unpack'), True)
++        except ValueError as exc:
++            bb.fatal("Invalid value for 'unpack' parameter for %s: %s" %
++                     (file, urldata.parm.get('unpack')))
++
++        # If 'subdir' param exists, create a dir and use it as destination for unpack cmd
++        if 'subdir' in urldata.parm:
++            subdir = urldata.parm.get('subdir')
++            if os.path.isabs(subdir):
++                if not os.path.realpath(subdir).startswith(os.path.realpath(rootdir)):
++                    raise UnpackError("subdir argument isn't a subdirectory of unpack root %s" % rootdir, urldata.url)
++                unpackdir = subdir
++            else:
++                unpackdir = os.path.join(rootdir, subdir)
++        else:
++            unpackdir = os.path.join(rootdir, "nuget")
++
++        bb.utils.mkdirhier(unpackdir)
++
++        with zipfile.ZipFile(urldata.localpath, mode='r') as zip:
++            zip.extractall(unpackdir)
++
++    def clean(self, ud, d):
++        """Clean any existing full or partial download"""
++        if os.path.exists(ud.resolvefile):
++            self._setup_proxy(ud, d)
++            ud.proxy.clean()
++            bb.utils.remove(ud.resolvefile)
++
++    def done(self, ud, d):
++        """Is the download done ?"""
++        if not os.path.exists(ud.resolvefile):
++            return False
++        proxy_m, proxy_ud, proxy_d = self._get_proxy_method(ud, d)
++        return proxy_m.done(proxy_ud, proxy_d)
+diff --git a/lib/bb/tests/fetch.py b/lib/bb/tests/fetch.py
+index a62fa16a7..a59a62cb4 100644
+--- a/lib/bb/tests/fetch.py
++++ b/lib/bb/tests/fetch.py
+@@ -3275,6 +3275,196 @@ class GitSharedTest(FetcherTest):
+         self.assertFalse(os.path.exists(alt))
+ 
+ 
++class NugetTest(FetcherTest):
++    TEST_PACKAGE_NAME = "Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64"
++    TEST_PACKAGE_VERSION = "1.1.2"
++    TEST_PACKAGE_SHA256SUM = "264a3633367dddf11e29b510f9a47cdd43c685728dac9111eb3a8240065795f2"
++    TEST_PACKAGE_URL = "nuget://nuget.org/%s/%s;sha256sum=%s" % (TEST_PACKAGE_NAME, TEST_PACKAGE_VERSION, TEST_PACKAGE_SHA256SUM)
++
++    @skipIfNoNetwork()
++    def test_nuget(self):
++        url = self.TEST_PACKAGE_URL
++        fetcher = bb.fetch.Fetch([url], self.d)
++        ud = fetcher.ud[fetcher.urls[0]]
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++        self.assertTrue(os.path.exists(ud.localpath + '.done'))
++        self.assertTrue(os.path.exists(ud.resolvefile))
++        fetcher.unpack(self.unpackdir)
++        unpackdir = os.path.join(self.unpackdir, 'nuget')
++        self.assertTrue(os.path.exists(os.path.join(unpackdir, 'Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64.nuspec')))
++
++    @skipIfNoNetwork()
++    def test_nuget_bad_checksum(self):
++        url = self.TEST_PACKAGE_URL
++        # Fetch once to get a tarball
++        fetcher = bb.fetch.Fetch([url], self.d)
++        ud = fetcher.ud[fetcher.urls[0]]
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++        # Modify the tarball
++        bad = b'bad checksum'
++        with open(ud.localpath, 'wb') as f:
++            f.write(bad)
++        # Verify that the tarball is fetched again
++        fetcher.download()
++        badsum = hashlib.sha256(bad).hexdigest()
++        print(ud.localpath + '_bad-checksum_' + badsum)
++        self.assertTrue(os.path.exists(ud.localpath + '_bad-checksum_' + badsum))
++        self.assertTrue(os.path.exists(ud.localpath))
++
++    @skipIfNoNetwork()
++    def test_nuget_premirrors(self):
++        url = self.TEST_PACKAGE_URL
++        # Fetch once to get a tarball
++        fetcher = bb.fetch.Fetch([url], self.d)
++        ud = fetcher.ud[fetcher.urls[0]]
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++
++        # Setup the mirror by renaming the download directory
++        mirrordir = os.path.join(self.tempdir, 'mirror')
++        bb.utils.rename(self.dldir, mirrordir)
++        os.mkdir(self.dldir)
++
++        # Configure the premirror to be used
++        self.d.setVar('PREMIRRORS', 'https?$://.*/.* file://%s/nuget' % mirrordir)
++        self.d.setVar('BB_FETCH_PREMIRRORONLY', '1')
++
++        # Fetch again
++        self.assertFalse(os.path.exists(ud.localpath))
++        # The nuget fetcher doesn't handle that the .resolved file disappears
++        # while the fetcher object exists, which it does when we rename the
++        # download directory to "mirror" above. Thus we need a new fetcher to go
++        # with the now empty download directory.
++        fetcher = bb.fetch.Fetch([url], self.d)
++        ud = fetcher.ud[fetcher.urls[0]]
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++
++    @skipIfNoNetwork()
++    def test_nuget_premirrors_with_specified_filename(self):
++        url = self.TEST_PACKAGE_URL
++        # Fetch once to get a tarball
++        fetcher = bb.fetch.Fetch([url], self.d)
++        ud = fetcher.ud[fetcher.urls[0]]
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++        # Setup the mirror
++        mirrordir = os.path.join(self.tempdir, 'mirror')
++        bb.utils.mkdirhier(mirrordir)
++        mirrorfilename = os.path.join(mirrordir, os.path.basename(ud.localpath))
++        os.replace(ud.localpath, mirrorfilename)
++        self.d.setVar('PREMIRRORS', 'https?$://.*/.* file://%s' % mirrorfilename)
++        self.d.setVar('BB_FETCH_PREMIRRORONLY', '1')
++        # Fetch again
++        self.assertFalse(os.path.exists(ud.localpath))
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++
++    @skipIfNoNetwork()
++    def test_nuget_mirrors(self):
++        # Fetch once to get a tarball
++        url = self.TEST_PACKAGE_URL
++        fetcher = bb.fetch.Fetch([url], self.d)
++        ud = fetcher.ud[fetcher.urls[0]]
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++        # Setup the mirror
++        mirrordir = os.path.join(self.tempdir, 'mirror')
++        bb.utils.mkdirhier(mirrordir)
++        os.replace(ud.localpath, os.path.join(mirrordir, os.path.basename(ud.localpath)))
++        self.d.setVar('MIRRORS', 'https?$://.*/.* file://%s/' % mirrordir)
++        # Update the resolved url to an invalid url
++        with open(ud.resolvefile, 'r') as f:
++            url = f.read()
++        uri = URI(url)
++        uri.path = '/invalid'
++        with open(ud.resolvefile, 'w') as f:
++            f.write(str(uri))
++        # Fetch again
++        self.assertFalse(os.path.exists(ud.localpath))
++        fetcher.download()
++        self.assertTrue(os.path.exists(ud.localpath))
++
++    def test_nuget_no_network_no_tarball(self):
++        url = self.TEST_PACKAGE_URL
++        self.d.setVar('BB_NO_NETWORK', '1')
++        fetcher = bb.fetch.Fetch([url], self.d)
++        with self.assertRaises(bb.fetch2.NetworkAccess):
++            fetcher.download()
++
++    @skipIfNoNetwork()
++    def test_nuget_no_network_with_tarball(self):
++        url = self.TEST_PACKAGE_URL
++        # Fetch once to get a tarball
++        fetcher = bb.fetch.Fetch([url], self.d)
++        fetcher.download()
++        # Disable network access
++        self.d.setVar('BB_NO_NETWORK', '1')
++        # Fetch again
++        fetcher.download()
++        fetcher.unpack(self.unpackdir)
++        unpackdir = os.path.join(self.unpackdir, 'nuget')
++        self.assertTrue(os.path.exists(os.path.join(unpackdir, self.TEST_PACKAGE_NAME + ".nuspec")))
++
++    @skipIfNoNetwork()
++    def test_nuget_registry_alternate(self):
++        self.d.setVar("NUGET_REGISTRY_alternate", "https://api.nuget.org/v3/index.json");
++        url = 'nuget://alternate/%s/%s;sha256sum=%s' % (self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION, self.TEST_PACKAGE_SHA256SUM)
++        fetcher = bb.fetch.Fetch([url], self.d)
++        fetcher.download()
++        fetcher.unpack(self.unpackdir)
++        unpackdir = os.path.join(self.unpackdir, 'nuget')
++        self.assertTrue(os.path.exists(os.path.join(unpackdir, self.TEST_PACKAGE_NAME + ".nuspec")))
++
++    @skipIfNoNetwork()
++    def test_nuget_registry_invalid(self):
++        self.d.setVar("NUGET_REGISTRY_invalid", "https://invalid.org/v3/index.json");
++        url = 'nuget://invalid/%s/%s;sha256sum=%s' % (self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION, self.TEST_PACKAGE_SHA256SUM)
++        fetcher = bb.fetch.Fetch([url], self.d)
++        with self.assertRaises(bb.fetch2.FetchError):
++            fetcher.download()
++
++    @skipIfNoNetwork()
++    def test_nuget_registry_notdefined(self):
++        url = 'nuget://notdefined/%s/%s;sha256sum=%s' % (self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION, self.TEST_PACKAGE_SHA256SUM)
++        fetcher = bb.fetch.Fetch([url], self.d)
++        with self.assertRaises(bb.fetch2.ParameterError):
++            fetcher.download()
++
++    @skipIfNoNetwork()
++    def test_nuget_package_invalid(self):
++        url = 'nuget://nuget.org/Invalid.Package.Name/1.0.0'
++        fetcher = bb.fetch.Fetch([url], self.d)
++        with self.assertRaises(bb.fetch2.FetchError):
++            fetcher.download()
++
++    @skipIfNoNetwork()
++    def test_nuget_version_invalid(self):
++        url = 'nuget://nuget.org/Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64/invalid'
++        with self.assertRaises(bb.fetch2.ParameterError):
++            fetcher = bb.fetch.Fetch([url], self.d)
++
++    @skipIfNoNetwork()
++    def test_nuget_registry_none(self):
++        url = 'nuget:///Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64/1.0.0'
++        with self.assertRaises(bb.fetch2.MissingParameterError):
++            fetcher = bb.fetch.Fetch([url], self.d)
++
++    @skipIfNoNetwork()
++    def test_nuget_package_none(self):
++        url = 'nuget://nuget.org//1.0.0'
++        with self.assertRaises(bb.fetch2.MissingParameterError):
++            fetcher = bb.fetch.Fetch([url], self.d)
++
++    @skipIfNoNetwork()
++    def test_nuget_version_none(self):
++        url = 'nuget://nuget.org/Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64'
++        with self.assertRaises(bb.fetch2.MalformedUrl):
++            fetcher = bb.fetch.Fetch([url], self.d)
++
++
+ class FetchPremirroronlyLocalTest(FetcherTest):
+ 
+     def setUp(self):
+-- 
+2.47.3
+

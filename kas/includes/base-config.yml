@@ -38,6 +38,10 @@ repos:
     # This repo does not provide any layers.
     layers:
       .: disabled
+    patches:
+      add-nuget-fetcher:
+        repo: meta-nile
+        path: "../kas/patches/bitbake/0001-fetch2-nuget-add-a-nuget-fetcher.patch"
 
   openembedded-core:
     url: "https://git.openembedded.org/openembedded-core.git"
