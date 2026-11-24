@@ -12,23 +12,36 @@ IMAGE_FEATURES += "read-only-rootfs"
 IMAGE_INSTALL = "\
     packagegroup-core-boot \
     libubootenv-bin \
+    lci-target-config \
     ${CORE_IMAGE_EXTRA_INSTALL} \
     "
 
 # LCI runtime, installed from the ni-lci feed. These are feed-only packages
 # (no local OE recipe), so use IMAGE_INSTALL_NODEPS; opkg resolves their runtime
-# Depends from the configured feeds at do_rootfs.
-IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034"
+# Depends from the configured feeds at do_rootfs. vb8034Daemon dlopens nicurl's
+# libcurlimpl, so no package depends on it. The system web server has no
+# hard-float port yet; lci-legacy-webserver carries the soft-float one as a
+# chroot, with its own init script.
+IMAGE_INSTALL_NODEPS:append = " nilcidriver-vb8034 lciutils lci-legacy-artifacts-vb8034 ni-auth nicurl lci-legacy-webserver"
 
 # OE packages that the feed packages depend on; NODEPS hides them from bitbake.
-LCI_FEED_DEPENDS = "libavahi-client"
+LCI_FEED_DEPENDS = "libavahi-client mtd-utils mtd-utils-ubifs openssl-bin ca-certificates"
 IMAGE_INSTALL:append = " ${LCI_FEED_DEPENDS}"
+
+# lci-legacy-webserver's postinst runs setcap at rootfs time.
+do_rootfs[depends] += "libcap-native:do_populate_sysroot"
+
+# The Zynq-7000 has no hardware RNG; haveged seeds the CRNG before sshd starts.
+IMAGE_INSTALL:append = " haveged lci-runtime lci-runtime-watchdog"
 
 # Read-only squashfs is the updater's root payload; the FIT lci.itb and bootfs
 # UBI volume are produced by lci-fitimage (EXTRA_IMAGEDEPENDS in vb8034.conf).
 IMAGE_FSTYPES = "squashfs"
 
 inherit core-image
+
+# Removing run-postinsts afterwards would leave its systemd enable link behind.
+ROOTFS_BOOTSTRAP_INSTALL = ""
 
 # From-feeds images carry no build-time dep on the feed packages, so native tools
 # their preinsts / image commands invoke are not staged transitively:
@@ -90,12 +103,46 @@ lci_fix_softfloat_symlinks() {
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_fix_softfloat_symlinks;"
 
+# The NI feed binaries request /lib/ld-linux.so.3 as their interpreter.
+lci_legacy_loader_link() {
+    ln -sf ld-linux-armhf.so.3 ${IMAGE_ROOTFS}${base_libdir}/ld-linux.so.3
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_legacy_loader_link;"
+
+# OE runs ldconfig -X and the NI packages' postinsts don't run, so create the
+# NI libraries' soname links.
+lci_ni_soname_links() {
+    ldconfig -n ${IMAGE_ROOTFS}${libdir}/arm-linux-gnueabihf
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_ni_soname_links;"
+
 # libnitargetcfg (GetTargetID) runs /sbin/fw_printenv.
 lci_fw_env_tool_links() {
     ln -sf ${bindir}/fw_printenv ${IMAGE_ROOTFS}${base_sbindir}/fw_printenv
     ln -sf ${bindir}/fw_setenv ${IMAGE_ROOTFS}${base_sbindir}/fw_setenv
 }
 ROOTFS_POSTPROCESS_COMMAND += "lci_fw_env_tool_links;"
+
+# libnitargetcfg reports the firmware version from nisafemodeversion, which
+# prints /etc/natinst/version.
+lci_firmware_version() {
+    install -d ${IMAGE_ROOTFS}${sysconfdir}/natinst ${IMAGE_ROOTFS}/usr/local/natinst/bin
+    echo "${LCI_FW_VERSION}" > ${IMAGE_ROOTFS}${sysconfdir}/natinst/version
+    printf '#!/bin/sh\ncat /etc/natinst/version\n' > ${IMAGE_ROOTFS}/usr/local/natinst/bin/nisafemodeversion
+    chmod 0755 ${IMAGE_ROOTFS}/usr/local/natinst/bin/nisafemodeversion
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_firmware_version;"
+
+# niauth_daemon and its clients (e.g. vb8034Daemon as lvuser) create sockets in
+# /var/local/natinst/ipc, which is on the read-only root; keep it on tmpfs.
+lci_niauth_ipc_volatile() {
+    install -d ${IMAGE_ROOTFS}/var/local/natinst ${IMAGE_ROOTFS}${sysconfdir}/default/volatiles
+    ln -sfn /var/volatile/natinst/ipc ${IMAGE_ROOTFS}/var/local/natinst/ipc
+    echo "d root root 1777 /var/volatile/natinst/ipc none" > ${IMAGE_ROOTFS}${sysconfdir}/default/volatiles/99_lci_niauth
+    install -d ${IMAGE_ROOTFS}${nonarch_libdir}/tmpfiles.d
+    echo "d /var/volatile/natinst/ipc 1777 root root -" > ${IMAGE_ROOTFS}${nonarch_libdir}/tmpfiles.d/lci-niauth.conf
+}
+ROOTFS_POSTPROCESS_COMMAND += "lci_niauth_ipc_volatile;"
 
 # Under sysvinit the serial getty (respawn) is ordered after "l5:5:wait:.../rc 5"
 # in /etc/inittab, so a hang in an rc5 service blocks the login prompt. Move the
@@ -120,7 +167,8 @@ ROOTFS_POSTPROCESS_COMMAND += "lci_drop_unused_boot_payloads;"
 
 # --- LCI update bundle -------------------------------------------------------
 # The machine conf sets the device identity (MANIFEST_*) and LCI_BUNDLE_NAME.
-LCI_FW_VERSION ?= "${DISTRO_VERSION}"
+# The ni-central pipeline sets BUILDNAME to the workspace version.
+LCI_FW_VERSION ?= "${BUILDNAME}"
 
 # CI builds sign the bundle with the production 'lci' key on the NI signing
 # server, which only build machines can reach; local builds are unsigned. The

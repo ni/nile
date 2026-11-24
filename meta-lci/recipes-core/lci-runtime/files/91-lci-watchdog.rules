@@ -1,0 +1,2 @@
+# vb8034Daemon (lvuser) opens and pets the SWDT.
+KERNEL=="watchdog", OWNER="lvuser", GROUP="ni"

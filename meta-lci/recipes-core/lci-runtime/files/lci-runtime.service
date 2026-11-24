@@ -1,0 +1,16 @@
+[Unit]
+Description=VB-8034 LCI daemon
+ConditionFileIsExecutable=/usr/local/natinst/bin/vb8034Daemon
+Wants=avahi-daemon.service
+After=network.target avahi-daemon.service niauth.service lci-populateconfig.service
+
+[Service]
+ExecStartPre=+@LIBEXECDIR@/lci-runtime-prepare
+ExecStart=/usr/local/natinst/bin/vb8034Daemon
+User=lvuser
+Group=ni
+# The daemon runs its DMA poll threads at SCHED_FIFO max priority.
+LimitRTPRIO=99
+
+[Install]
+WantedBy=multi-user.target
