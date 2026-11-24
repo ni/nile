@@ -1,0 +1,20 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/n3xx.yml
+
+target:
+  - mc:ni-sulfur-ec:chromium-ec
+  - mc:ni-sulfur:gnuradio-image
+
+artifacts:
+  "gnuradio-image-ni-sulfur-rev11-mender.cve":               "tmp/deploy/images/ni-sulfur-rev11-mender/gnuradio-image-ni-sulfur-rev11-mender.cve"
+  "gnuradio-image-ni-sulfur-rev11-mender.manifest":          "tmp/deploy/images/ni-sulfur-rev11-mender/gnuradio-image-ni-sulfur-rev11-mender.manifest"
+  "gnuradio-image-ni-sulfur-rev11-mender.mender":            "tmp/deploy/images/ni-sulfur-rev11-mender/gnuradio-image-ni-sulfur-rev11-mender.mender"
+  "gnuradio-image-ni-sulfur-rev11-mender.sdimg.bz2":         "tmp/deploy/images/ni-sulfur-rev11-mender/gnuradio-image-ni-sulfur-rev11-mender.sdimg.bz2"
+  "gnuradio-image-ni-sulfur-rev11-mender.spdx.tar.zst":      "tmp/deploy/images/ni-sulfur-rev11-mender/gnuradio-image-ni-sulfur-rev11-mender.spdx.tar.zst"
+  "manufacturing-image-ni-sulfur-rev11-mender.cpio.gz":      "tmp/deploy/images/ni-sulfur-rev11-mender/manufacturing-image-ni-sulfur-rev11-mender.cpio.gz"
+  "manufacturing-image-ni-sulfur-rev11-mender.cve":          "tmp/deploy/images/ni-sulfur-rev11-mender/manufacturing-image-ni-sulfur-rev11-mender.cve"
+  "manufacturing-image-ni-sulfur-rev11-mender.manifest":     "tmp/deploy/images/ni-sulfur-rev11-mender/manufacturing-image-ni-sulfur-rev11-mender.manifest"
+  "manufacturing-image-ni-sulfur-rev11-mender.spdx.tar.zst": "tmp/deploy/images/ni-sulfur-rev11-mender/manufacturing-image-ni-sulfur-rev11-mender.spdx.tar.zst"

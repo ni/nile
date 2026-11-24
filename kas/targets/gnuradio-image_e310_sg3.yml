@@ -1,0 +1,20 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/e310_sg3.yml
+
+target:
+  - gnuradio-image
+  
+artifacts:
+  "gnuradio-image-ni-e31x-sg3-mender.cve":               "tmp/deploy/images/ni-e31x-sg3-mender/gnuradio-image-ni-e31x-sg3-mender.cve"
+  "gnuradio-image-ni-e31x-sg3-mender.manifest":          "tmp/deploy/images/ni-e31x-sg3-mender/gnuradio-image-ni-e31x-sg3-mender.manifest"
+  "gnuradio-image-ni-e31x-sg3-mender.mender":            "tmp/deploy/images/ni-e31x-sg3-mender/gnuradio-image-ni-e31x-sg3-mender.mender"
+  "gnuradio-image-ni-e31x-sg3-mender.sdimg.bz2":         "tmp/deploy/images/ni-e31x-sg3-mender/gnuradio-image-ni-e31x-sg3-mender.sdimg.bz2"
+  "gnuradio-image-ni-e31x-sg3-mender.spdx.tar.zst":      "tmp/deploy/images/ni-e31x-sg3-mender/gnuradio-image-ni-e31x-sg3-mender.spdx.tar.zst"
+  "u-boot-ni-e31x-sg3-mender.img":                       "tmp/deploy/images/ni-e31x-sg3-mender/u-boot-ni-e31x-sg3-mender.img"
+  "manufacturing-image-ni-e31x-sg3-mender.cpio.gz":      "tmp/deploy/images/ni-e31x-sg3-mender/manufacturing-image-ni-e31x-sg3-mender.cpio.gz"
+  "manufacturing-image-ni-e31x-sg3-mender.cve":          "tmp/deploy/images/ni-e31x-sg3-mender/manufacturing-image-ni-e31x-sg3-mender.cve"
+  "manufacturing-image-ni-e31x-sg3-mender.manifest":     "tmp/deploy/images/ni-e31x-sg3-mender/manufacturing-image-ni-e31x-sg3-mender.manifest"
+  "manufacturing-image-ni-e31x-sg3-mender.spdx.tar.zst": "tmp/deploy/images/ni-e31x-sg3-mender/manufacturing-image-ni-e31x-sg3-mender.spdx.tar.zst"
