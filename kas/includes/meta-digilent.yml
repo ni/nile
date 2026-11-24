@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-digilent:
+    url: "https://github.com/Digilent/meta-digilent.git"
+    path: "layers/meta-digilent"
+    branch: "scarthgap"

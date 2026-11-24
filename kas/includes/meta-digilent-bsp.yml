@@ -1,0 +1,8 @@
+header:
+  version: 19
+
+repos:
+  meta-digilent-bsp:
+    url: "https://github.com/Digilent/meta-digilent-bsp.git"
+    path: "layers/meta-digilent-bsp"
+    branch: "scarthgap"
