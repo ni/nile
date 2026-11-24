@@ -8,6 +8,10 @@ overrides:
       commit: 6b7eef28e7277e43bc01d8e0f1a0445923fb74a3
     meta-arm:
       commit: 0a4b911d9fd63ab29c4532a907fae3282dbdcfe4
+    meta-digilent:
+      commit: 34cdda1060207c94c31bde8cca15c63d69157401
+    meta-digilent-bsp:
+      commit: e1457902c645ca954f28e6ff9fc60a5348555159
     meta-openamp:
       commit: e44e4a3b4abe9cc5fdfe75c43181ba82750f6865
     meta-openembedded:
