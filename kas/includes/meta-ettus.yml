@@ -28,4 +28,4 @@ repos:
   meta-ettus:
     url: "https://github.com/EttusResearch/meta-ettus-dev"
     path: "layers/meta-ettus"
-    branch: "scarthgap"
+    branch: "scarthgap-nile"

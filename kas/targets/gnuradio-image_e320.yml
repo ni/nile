@@ -1,0 +1,21 @@
+header:
+  version: 19
+  includes:
+    - kas/includes/base-config.yml
+    - kas/machines/e320.yml
+
+target:
+  - mc:ni-neon:gnuradio-image
+  - mc:ni-neon-ec:chromium-ec
+  
+artifacts:
+  "gnuradio-image-ni-neon-rev2-mender.cve":               "tmp/deploy/images/ni-neon-rev2-mender/gnuradio-image-ni-neon-rev2-mender.cve"
+  "gnuradio-image-ni-neon-rev2-mender.manifest":          "tmp/deploy/images/ni-neon-rev2-mender/gnuradio-image-ni-neon-rev2-mender.manifest"
+  "gnuradio-image-ni-neon-rev2-mender.mender":            "tmp/deploy/images/ni-neon-rev2-mender/gnuradio-image-ni-neon-rev2-mender.mender"
+  "gnuradio-image-ni-neon-rev2-mender.sdimg.bz2":         "tmp/deploy/images/ni-neon-rev2-mender/gnuradio-image-ni-neon-rev2-mender.sdimg.bz2"
+  "gnuradio-image-ni-neon-rev2-mender.spdx.tar.zst":      "tmp/deploy/images/ni-neon-rev2-mender/gnuradio-image-ni-neon-rev2-mender.spdx.tar.zst"
+  "u-boot-ni-neon-rev2.img":                              "tmp/deploy/images/ni-neon-rev2/u-boot-ni-neon-rev2.img"
+  "manufacturing-image-ni-neon-rev2-mender.cpio.gz":      "tmp/deploy/images/ni-neon-rev2-mender/manufacturing-image-ni-neon-rev2-mender.cpio.gz"
+  "manufacturing-image-ni-neon-rev2-mender.cve":          "tmp/deploy/images/ni-neon-rev2-mender/manufacturing-image-ni-neon-rev2-mender.cve"
+  "manufacturing-image-ni-neon-rev2-mender.manifest":     "tmp/deploy/images/ni-neon-rev2-mender/manufacturing-image-ni-neon-rev2-mender.manifest"
+  "manufacturing-image-ni-neon-rev2-mender.spdx.tar.zst": "tmp/deploy/images/ni-neon-rev2-mender/manufacturing-image-ni-neon-rev2-mender.spdx.tar.zst"
